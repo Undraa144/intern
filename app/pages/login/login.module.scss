@@ -1,0 +1,68 @@
+.main{
+    height: 870px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: auto;  
+    background: url('/login.png') center/cover no-repeat;
+}
+.left{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+}
+.right{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.form {
+  width: 100%;
+  max-width: 420px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0;
+    font-size: 36px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  p {
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 15px;
+
+    a {
+      color: #1677ff;
+      text-decoration: none;
+      font-weight: 500;
+    }
+  }
+}
+
+.submitBtn {
+  height: 48px;
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+:global(.ant-input),
+:global(.ant-input-password) {
+  height: 48px;
+  border-radius: 6px;
+}
+
+:global(.ant-form-item) {
+  margin-bottom: 16px;
+}

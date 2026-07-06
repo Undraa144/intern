@@ -1,0 +1,59 @@
+.main {
+  padding: 80px 60px;
+  background: #fff;
+}
+
+.title {
+  text-align: center;
+  font-size: 38px;
+  font-weight: 700;
+  margin-bottom: 60px;
+  font-family: Inter;
+}
+
+.steps {
+    padding: 0 100px ;
+
+  :global(.ant-steps-item-title) {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000 !important;
+  }
+  .p{
+    color: #000000;
+  }
+
+  :global(.ant-steps-item-description) {
+    max-width: 180px;
+    font-size: 13px;
+    color: #000000 !important;
+  }
+
+  :global(.ant-steps-item-icon) {
+    width: 50px !important;
+    height: 60px !important;
+    line-height: 56px !important;
+    border-radius: 50%;
+    
+  }
+
+  :global(.ant-steps-icon) {
+    font-size: 24px !important;
+    
+  }
+
+  :global(.ant-steps-item-tail::after) {
+    border-top: 2px dashed #91caff !important;
+    background: transparent !important;
+  }
+
+  :global(.ant-steps-item-process .ant-steps-item-icon) {
+    background: #1677ff;
+    border-color: #1677ff;
+    
+  }
+
+  :global(.ant-steps-item-process .ant-steps-icon) {
+    color: white;
+  }
+}

@@ -1,0 +1,122 @@
+.main {
+  background: #f4f0ff;
+  padding: 100px 80px;
+  text-align: center;
+}
+
+.title {
+  font-size: 42px;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #777;
+  margin-bottom: 50px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  transition: 0.3s;
+
+  &:hover {
+    transform: translateY(-6px);
+  }
+}
+
+.top {
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 220px;
+  text-align: left;
+}
+
+.logo {
+  margin-bottom: 16px;
+}
+
+.top h3 {
+  font-size: 20px;
+  margin-bottom: 14px;
+}
+
+.top p {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tags span {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 11px;
+  background: white;
+}
+
+.bottom {
+  padding: 18px 12px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bottom span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bottom button {
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+
+  &:hover {
+    background: #1677ff;
+    color: white;
+    border-color: #1677ff;
+  }
+}
+
+.allJobs {
+  margin-top: 50px;
+  background: #2d2d2d;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 14px 30px;
+  cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

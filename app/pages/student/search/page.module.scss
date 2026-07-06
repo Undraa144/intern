@@ -1,0 +1,36 @@
+.main {
+  min-height: 100vh;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signin {
+  border-radius: 8px;
+}
+
+.trial {
+  border-radius: 8px;
+}
+
+.header {
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  height: 64px;
+}
