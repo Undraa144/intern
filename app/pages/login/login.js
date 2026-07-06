@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {Tabs} from 'antd';
 import { Form, Input, Button, Checkbox, Select } from "antd";
 
@@ -9,8 +10,46 @@ import styles from "./login.module.scss";
 export default function Login() {
   const [form] = Form.useForm();
 
-  const onFinish = (values) => {
-    console.log("Success:", values);
+  const API_BASE = process.env.BASE || "http://localhost:8088"
+
+  const onFinish = async (values) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/auth/login`, 
+        {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (!response.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      if (data.role === "STUDENT") {
+        router.push("/pages/student/home");
+      } else if (data.role === "TEACHER") {
+        router.push("/pages/teacher/home");
+      } else if (data.role === "COMPANY") {
+        router.push("/pages/employer/home");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Сервертэй холбогдож чадсангүй.");
+    }
   };
 
   const items = [
