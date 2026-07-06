@@ -15,26 +15,20 @@ import {
   FileSearchOutlined,
   InboxOutlined,
   CopyOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 
-import { Layout, Menu, theme, Button } from "antd";
+import { Layout, Menu, Button } from "antd";
 
 const { Header, Content, Footer } = Layout;
 
 export default function HomePage() {
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
+  const [current, setCurrent] = useState("1");
+
+  const onClick = ({ key }) => {
+    setCurrent(key);
+  };
 
   const currentYear = new Date().getFullYear();
-
-  const [current, setCurrent] = useState("");
-
-  const onClick = (e) => {
-    console.log("click ", e);
-    setCurrent(e.key);
-  };
 
   const menuItems = [
     {
@@ -61,7 +55,12 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <Header style={{background: '#ffffff'}}>
+      <Header
+        style={{
+          background: "#fff",
+          padding: "0 24px",
+        }}
+      >
         <div className={styles.header}>
           <Link href="/" className={styles.title}>
             <img
@@ -76,10 +75,10 @@ export default function HomePage() {
           <div className={styles.spacer}></div>
 
           <Menu
-            onClick={onClick}
-            selectedKeys={[current]}
             mode="horizontal"
+            selectedKeys={[current]}
             items={menuItems}
+            onClick={onClick}
             className={styles.menu}
           />
 
@@ -89,31 +88,23 @@ export default function HomePage() {
             </Button>
 
             <Button type="primary" className={styles.trial}>
-              <Link href="/">Post A Jobs</Link>
+              <Link href="/">Post A Job</Link>
             </Button>
           </div>
         </div>
       </Header>
 
       <Content>
-        <div
-          style={{
-            minHeight: 360,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
-          }}
-        >
-          <Home />
-          <Home1 />
-          <Home2/>
-          <Home3/>
-        </div>
+        <Home />
+        <Home1 />
+        <Home2 />
+        <Home3 />
       </Content>
 
       <Footer
         style={{
           textAlign: "center",
-          background: "white",
+          background: "#fff",
         }}
       >
         InternHub © {currentYear}

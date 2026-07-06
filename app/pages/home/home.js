@@ -1,85 +1,99 @@
 "use client";
 
-import Image from 'next/image'
-import { Input } from 'antd';
-import {AutoComplete} from 'antd';
-import {Row , Col , Card} from 'antd';
-import styles from './home.module.scss';
+import { useState } from "react";
+import Image from "next/image";
+import { Input, AutoComplete } from "antd";
 
-const { Search } = Input;
+import styles from "./home.module.scss";
 
 export default function Home() {
-const onSearch = (value) => { console.log(value); }; 
-const options = [ 
-    { value: 'It' }, 
-    { value: 'Marketing' }, 
-    { value: 'Design' }, ];
-  return (
-    <div className={styles.main}> 
-        <div className={styles.left}> 
-            <h1 > 
-                Find a job that suits your interests & skills 
-            </h1> 
-            <p className={styles.description}> 
-                This is the main content of the home page. 
-            </p> 
-            <AutoComplete classNames={{ popup: { root: 'certain-category-search-dropdown', }, }} 
-            popupMatchSelectWidth={500} style={{ width: 250 }} options={options} > 
-            <Input.Search size="large" placeholder="input here" /> 
-            </AutoComplete> 
-        </div> 
-        <div className={styles.right}> 
-            <img src="/home.jpeg" alt="Home Image" className={styles.image} /> 
-        </div> 
-        <div className={styles.stats}>
-        <div className={styles.statCard}>
-            <div className={styles.iconBox}>
-            <Image
-                src="/job.jpeg"
-                alt="job"
-                width={40}
-                height={40}
-            />
-            </div>
+  const [searchText, setSearchText] = useState("");
 
-            <div className={styles.content}>
+  const onSearch = (value) => {
+    setSearchText(value);
+    console.log(value);
+  };
+
+  const options = [
+    { value: "IT" },
+    { value: "Marketing" },
+    { value: "Design" },
+    { value: "Finance" },
+    { value: "Human Resource" },
+    { value: "Software Engineer" },
+  ];
+
+  return (
+    <div className={styles.main}>
+      <div className={styles.left}>
+        <h1>
+          Find a job that suits your interests & skills
+        </h1>
+
+        <p className={styles.description}>
+          This is the main content of the home page.
+        </p>
+
+        
+      </div>
+
+      <div className={styles.right}>
+        <img
+          src="/home.jpeg"
+          alt="Home Image"
+          className={styles.image}
+        />
+      </div>
+
+      <div className={styles.stats}>
+        <div className={styles.statCard}>
+          <div className={styles.iconBox}>
+            <Image
+              src="/job.jpeg"
+              alt="job"
+              width={40}
+              height={40}
+            />
+          </div>
+
+          <div className={styles.content}>
             <h3>1</h3>
             <p>Live Job</p>
-            </div>
+          </div>
         </div>
 
         <div className={styles.statCard}>
-            <div className={styles.iconBox}>
+          <div className={styles.iconBox}>
             <Image
-                src="/company.jpeg"
-                alt="company"
-                width={40}
-                height={40}
+              src="/company.jpeg"
+              alt="company"
+              width={40}
+              height={40}
             />
-            </div>
+          </div>
 
-            <div className={styles.content}>
+          <div className={styles.content}>
             <h3>1</h3>
             <p>Companies</p>
-            </div>
+          </div>
         </div>
 
         <div className={styles.statCard}>
-            <div className={styles.iconBox}>
+          <div className={styles.iconBox}>
             <Image
-                src="/job.jpeg"
-                alt="job"
-                width={40}
-                height={40}
+              src="/job.jpeg"
+              alt="job"
+              width={40}
+              height={40}
             />
-            </div>
+          </div>
 
-            <div className={styles.content}>
+          <div className={styles.content}>
             <h3>1</h3>
             <p>New Jobs</p>
-            </div>
+          </div>
         </div>
-        </div>
+      </div>
     </div>
   );
 }

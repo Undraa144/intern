@@ -1,13 +1,11 @@
 "use client";
-import Home3 from "../../home/home3";
 
 import { useState } from "react";
 import Link from "next/link";
-import {AutoComplete} from "antd";
-import {Input} from "antd";
 
-import styles from "./page.module.scss";
+import Home3 from "../../home/home3";
 
+import { Layout, Menu, Button, AutoComplete, Input } from "antd";
 
 import {
   AppstoreOutlined,
@@ -17,98 +15,112 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 
-import { Layout, Menu, theme, Button } from "antd";
+import styles from "./page.module.scss";
+import SHome from "../home/shome";
 
-const { Header} = Layout;
-const { Search } = Input;
+const { Header } = Layout;
 
+export default function SearchPage() {
+  const [current, setCurrent] = useState("2");
 
-export default function SearchPage(){
-
-    const [current, setCurrent] = useState("");
-
-    const onClick = (e) => {
-    console.log("click ", e);
+  const onClick = (e) => {
     setCurrent(e.key);
   };
 
-      const menuItems = [
+const [searchText, setSearchText] = useState("");
+
+const onSearch = (value) => {
+  setSearchText(value);
+};
+
+  const options = [
+    { value: "IT" },
+    { value: "Marketing" },
+    { value: "Design" },
+    { value: "Finance" },
+    { value: "Human Resource" },
+    { value: "Software Engineer" },
+  ];
+
+  const menuItems = [
     {
       key: "1",
-      label: "Тойм",
-      icon: <AppstoreOutlined /> ,
+      label: <Link href="/pages/student/home">Тойм</Link>,
+      icon: <AppstoreOutlined />,
     },
     {
       key: "2",
       label: <Link href="/pages/student/search">Зар хайх</Link>,
       icon: <FileSearchOutlined />,
-      
     },
     {
       key: "3",
-      label: "Миний хүсэлтүүд",
+      label: <Link href="/pages/student/request">Миний хүсэлтүүд</Link>,
       icon: <InboxOutlined />,
     },
     {
       key: "4",
-      label: "Тайлан",
+      label: <Link href="/pages/student/report">Тайлан</Link>,
       icon: <CopyOutlined />,
     },
     {
       key: "5",
-      label: "Профайл",
+      label: <Link href="/pages/student/profile">Профайл</Link>,
       icon: <UserOutlined />,
     },
   ];
 
-    const onSearch = (value) => { console.log(value); }; 
-
-    const options = [ 
-    { value: 'It' }, 
-    { value: 'Marketing' }, 
-    { value: 'Design' }, ];
-
-
-    return(
-        <>
-        <Header style={{background: '#ffffff'}}>
+  return (
+    <>
+      <Header
+        style={{
+          background: "#fff",
+          padding: "0 40px",
+        }}
+      >
         <div className={styles.header}>
-          <Link href="/" className={styles.title}>
+          <Link href="/pages/student/home" className={styles.title}>
             <img
               src="/logo.png"
               alt="logo"
+              width={180}
+              height={40}
               className={styles.logo}
-              width={200}
-              height={25}
             />
           </Link>
 
-          <div className={styles.spacer}></div>
-
           <Menu
-            onClick={onClick}
-            selectedKeys={[current]}
             mode="horizontal"
+            selectedKeys={[current]}
             items={menuItems}
+            onClick={onClick}
             className={styles.menu}
           />
 
-            <div className={styles.actions}>
-                <Button className={styles.signin}>
-                <Link href="/">Sign Out</Link>
-                </Button>
+          <div className={styles.actions}>
+            <Button>
+              <Link href="/">Sign Out</Link>
+            </Button>
 
-                <Button type="primary" className={styles.trial}>
-                <Link href="/">Post A Jobs</Link>
-                </Button>
-            </div>
-            </div>
-        </Header>
-            <AutoComplete classNames={{ popup: { root: 'certain-category-search-dropdown', }, }} 
-            popupMatchSelectWidth={500} style={{ width: 250 }} options={options} > 
-            <Input.Search size="large" placeholder="input here" /> 
-            </AutoComplete> 
-        <Home3/>
-        </>
-    )
+          </div>
+        </div>
+      </Header>
+
+      <div className={styles.searchSection}>
+        <AutoComplete
+          options={options}
+          style={{ width: 700 ,}}
+        >
+          <Input.Search
+            size="large"
+            placeholder="Ажлын байр хайх..."
+            enterButton="Хайх"
+            onSearch={onSearch}
+          />
+        </AutoComplete>
+      </div>
+
+      <SHome searchText={searchText}/>
+    </>
+  );
 }

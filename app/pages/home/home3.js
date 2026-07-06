@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import Image from "next/image";
 import styles from "./home3.module.scss";
 
@@ -55,12 +55,19 @@ const jobs = [
   },
 ];
 
-export default function Home3() {
+export default function Home3({ searchText = "" }) {
+  const filteredJobs = jobs.filter(
+    (job) =>
+      job.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <section className={styles.main}>
-      <h1 className={styles.title}> Санал болгох ажил </h1>
+      <h1 className={styles.title}>Санал болгох ажил</h1>
+
       <div className={styles.grid}>
-        {jobs.map((job, index) => (
+        {filteredJobs.map((job, index) => (
           <div key={index} className={styles.card}>
             <div
               className={styles.top}
@@ -76,9 +83,7 @@ export default function Home3() {
 
               <h3>{job.title}</h3>
 
-              <p>
-                Дадлагжигч оюутан 
-              </p>
+              <p>Дадлагажигч оюутан</p>
 
               <div className={styles.tags}>
                 <span>Part Time</span>
@@ -89,14 +94,22 @@ export default function Home3() {
 
             <div className={styles.bottom}>
               <span>₮</span>
+
               <button>
-                <Link href="/pages/signup"> Хүсэлт илгээх</Link>
+                <Link href="/pages/signup">
+                  Хүсэлт илгээх
+                </Link>
               </button>
             </div>
           </div>
         ))}
       </div>
 
+      {filteredJobs.length === 0 && (
+        <h3 style={{ textAlign: "center", marginTop: "30px" }}>
+          Илэрц олдсонгүй
+        </h3>
+      )}
     </section>
   );
 }

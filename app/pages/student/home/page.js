@@ -39,28 +39,27 @@ export default function StudentHomePage() {
   const menuItems = [
     {
       key: "1",
-      label: "Тойм",
-      icon: <AppstoreOutlined /> ,
+      label: <Link href="/pages/student/home">Тойм</Link>,
+      icon: <AppstoreOutlined />,
     },
     {
       key: "2",
       label: <Link href="/pages/student/search">Зар хайх</Link>,
       icon: <FileSearchOutlined />,
-      
     },
     {
       key: "3",
-      label: "Миний хүсэлтүүд",
+      label: <Link href="/pages/student/request">Миний хүсэлтүүд</Link>,
       icon: <InboxOutlined />,
     },
     {
       key: "4",
-      label: "Тайлан",
+      label: <Link href="/pages/student/report">Тайлан</Link>,
       icon: <CopyOutlined />,
     },
     {
       key: "5",
-      label: "Профайл",
+      label: <Link href="/pages/student/profile">Профайл</Link>,
       icon: <UserOutlined />,
     },
   ];
@@ -69,7 +68,7 @@ export default function StudentHomePage() {
     <Layout>
       <Header style={{background: '#ffffff'}}>
         <div className={styles.header}>
-          <Link href="/" className={styles.title}>
+          <Link href="/pages/student/home" className={styles.title}>
             <img
               src="/logo.png"
               alt="logo"
@@ -94,9 +93,6 @@ export default function StudentHomePage() {
               <Link href="/">Sign Out</Link>
             </Button>
 
-            <Button type="primary" className={styles.trial}>
-              <Link href="/">Post A Jobs</Link>
-            </Button>
           </div>
         </div>
       </Header>

@@ -1,36 +1,27 @@
-.main {
-  min-height: 100vh;
-}
-
-.title {
+.header {
   display: flex;
   align-items: center;
-  text-decoration: none;
+  height: 64px;
 }
 
 .logo {
   object-fit: contain;
 }
 
+.menu {
+  flex: 1;
+  justify-content: center;
+  border-bottom: none !important;
+}
+
 .actions {
   display: flex;
-  align-items: center;
   gap: 12px;
 }
 
-.signin {
-  border-radius: 8px;
-}
-
-.trial {
-  border-radius: 8px;
-}
-
-.header {
-  padding: 0 24px;
+.searchSection {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  height: 64px;
+  justify-content: center;
+  padding: 40px 0;
+  background: #f4f0ff;
 }
