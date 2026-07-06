@@ -213,7 +213,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              <Link href="/pages/student/home">Log In</Link> 
+              <Link href="/pages/employer/home">Log In</Link> 
             </Button>
           </Form>
       </div>
@@ -296,7 +296,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              <Link href="/pages/student/home">Log In</Link> 
+              <Link href="/pages/teacher/home">Log In</Link> 
             </Button>
           </Form>
       </div>

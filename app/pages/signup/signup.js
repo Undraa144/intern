@@ -11,8 +11,21 @@ import { responsiveArray } from "antd/es/_util/responsiveObserver";
 export default function SignUp() {
   const [form] = Form.useForm();
   const router = useRouter();
+  
+const onFinish = async (values, role) => {
+    if (role === "student") {
+      router.push("/pages/student/home");
+    }
 
-  const API_BASE = process.env.BASE || "http://localhost:8088";
+    if (role === "employer") {
+      router.push("/pages/employer/home");
+    }
+
+    if (role === "teacher") {
+      router.push("/pages/teacher/home");
+    }
+  };
+  /*const API_BASE = process.env.BASE || "http://localhost:8088";
 
   const onFinish = async (values, role) => {
     if (role === "student") {
@@ -128,7 +141,7 @@ export default function SignUp() {
       }
 
     }
-  };
+  };*/
 
   const items = [
     {

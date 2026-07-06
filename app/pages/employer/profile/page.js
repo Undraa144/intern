@@ -3,66 +3,62 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import Home from "./home";
-import Home1 from "./home1";
-import Home2 from "./home2";
-import Home3 from "./home3";
-
 import styles from "./page.module.scss";
 
 import {
   AppstoreOutlined,
-  FileSearchOutlined,
   InboxOutlined,
   CopyOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, theme, Button } from "antd";
+import Profile from "./profile";
 
 const { Header, Content, Footer } = Layout;
 
-export default function HomePage() {
-  const [current, setCurrent] = useState("1");
-
-  const onClick = ({ key }) => {
-    setCurrent(key);
-  };
+export default function StudentHomePage() {
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   const currentYear = new Date().getFullYear();
+
+  const [current, setCurrent] = useState("4");
+
+  const onClick = (e) => {
+    console.log("click ", e);
+    setCurrent(e.key);
+  };
 
   const menuItems = [
     {
       key: "1",
-      label: "Тойм",
+      label: <Link href="/pages/employer/home">Тойм</Link>,
       icon: <AppstoreOutlined />,
     },
     {
       key: "2",
-      label: "Зар хайх",
-      icon: <FileSearchOutlined />,
+      label: <Link href="/pages/employer/ad">Миний зарууд</Link>,
+      icon: <CopyOutlined />,
     },
     {
       key: "3",
-      label: "Миний хүсэлтүүд",
+      label: <Link href="/pages/employer/request">Ирсэн хүсэлт</Link>,
       icon: <InboxOutlined />,
     },
     {
       key: "4",
-      label: "Тайлан",
-      icon: <CopyOutlined />,
+      label: <Link href="/pages/employer/profile">Профайл</Link>,
+      icon: <UserOutlined />,
     },
   ];
 
   return (
     <Layout>
-      <Header
-        style={{
-          background: "#fff",
-          padding: "0 24px",
-        }}
-      >
+      <Header style={{background: '#ffffff'}}>
         <div className={styles.header}>
-          <Link href="/" className={styles.title}>
+          <Link href="/pages/student/home" className={styles.title}>
             <img
               src="/logo.png"
               alt="logo"
@@ -75,16 +71,16 @@ export default function HomePage() {
           <div className={styles.spacer}></div>
 
           <Menu
-            mode="horizontal"
-            selectedKeys={[current]}
-            items={menuItems}
             onClick={onClick}
+            selectedKeys={[current]}
+            mode="horizontal"
+            items={menuItems}
             className={styles.menu}
           />
 
           <div className={styles.actions}>
             <Button className={styles.signin}>
-              <Link href="/pages/signup">Sign In</Link>
+              <Link href="/">Sign Out</Link>
             </Button>
 
           </div>
@@ -92,16 +88,22 @@ export default function HomePage() {
       </Header>
 
       <Content>
-        <Home />
-        <Home1 />
-        <Home2 />
-        <Home3 />
+        <div
+          style={{
+            minHeight: 360,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+          }}
+        >
+            <Profile/>
+
+        </div>
       </Content>
 
       <Footer
         style={{
           textAlign: "center",
-          background: "#fff",
+          background: "white",
         }}
       >
         InternHub © {currentYear}

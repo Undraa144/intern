@@ -1,0 +1,23 @@
+.main{
+    padding: 10px 50px;
+    background: #EDEAFF;
+    h2{
+        font-family: inter;
+        font-size: 25px;
+        font-weight: 500;
+        margin-top: 50px;
+    }
+    p{
+        font-family: inter;
+        font-size: 15px;
+        font-weight: 500;
+        color: #666;        
+    }
+}
+.card{
+    background: #ffffff;
+    max-height: 50px;
+    max-width: 200px;
+    border: solid 1px #666;
+    border-radius: 20px;
+}
