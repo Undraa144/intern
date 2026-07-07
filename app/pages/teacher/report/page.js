@@ -8,9 +8,9 @@ import styles from "./page.module.scss";
 import {
   UserOutlined,
   AppstoreOutlined,
-  FileSearchOutlined,
-  InboxOutlined,
-  CopyOutlined,
+  BankOutlined ,
+  TeamOutlined ,
+  SolutionOutlined ,
   FilePdfOutlined,
   PlusOutlined,
   UploadOutlined,
@@ -38,6 +38,10 @@ export default function ReportPage() {
   const [current, setCurrent] = useState("4");
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
+
+const [commentOpen, setCommentOpen] = useState(false);
+const [selectedReport, setSelectedReport] = useState(null);
+const [commentText, setCommentText] = useState("");
 
   const [reports, setReports] = useState([
     {
@@ -77,71 +81,64 @@ export default function ReportPage() {
   };
 
   const currentYear = new Date().getFullYear();
-
   const menuItems = [
     {
       key: "1",
-      label: <Link href="/pages/student/home">Тойм</Link>,
+      label: <Link href="/pages/teacher/home">Тойм</Link>,
       icon: <AppstoreOutlined />,
     },
     {
       key: "2",
-      label: <Link href="/pages/student/search">Зар хайх</Link>,
-      icon: <FileSearchOutlined />,
+      label: <Link href="/pages/teacher/company">Компани </Link>,
+      icon: <BankOutlined />,
     },
     {
       key: "3",
-      label: <Link href="/pages/student/request">Миний хүсэлтүүд</Link>,
-      icon: <InboxOutlined />,
+      label: <Link href="/pages/teacher/student">Оюутан </Link>,
+      icon: <TeamOutlined />,
     },
     {
       key: "4",
-      label: <Link href="/pages/student/report">Тайлан</Link>,
-      icon: <CopyOutlined />,
+      label: <Link href="/pages/teacher/report">Тайлан</Link>,
+      icon: <SolutionOutlined />,
     },
     {
       key: "5",
-      label: <Link href="/pages/student/profile">Профайл</Link>,
+      label: <Link href="/pages/teacher/profile">Профайл</Link>,
       icon: <UserOutlined />,
     },
   ];
-const savedReports =
-  JSON.parse(localStorage.getItem("reports")) || [];
-  const handleSubmit = (values) => {
-    const newReport = {
-      id: Date.now(),
-      title: values.title,
-      week: values.week,
-      description: values.description,
-      file:
-        values.file?.fileList?.[0]?.name ||
-        "report.pdf",
-      date: new Date()
-        .toISOString()
-        .split("T")[0],
-      status: "review",
-    };
 
-    const updatedReports = [
-      ...reports,
-      newReport,
-    ];
+const handleComment = (report) => {
+  setSelectedReport(report);
+  setCommentText(report.comment || "");
+  setCommentOpen(true);
+};
 
-    setReports(updatedReports);
+const saveComment = () => {
+  const updatedReports = reports.map((report) =>
+    report.id === selectedReport.id
+      ? {
+          ...report,
+          comment: commentText,
+          status: "approved",
+        }
+      : report
+  );
 
-    localStorage.setItem(
-      "reports",
-      JSON.stringify(updatedReports)
-    );
+  setReports(updatedReports);
 
-    message.success(
-      "Тайлан амжилттай илгээгдлээ"
-    );
+  localStorage.setItem(
+    "reports",
+    JSON.stringify(updatedReports)
+  );
 
-    form.resetFields();
-    setOpen(false);
-  };
+  setCommentOpen(false);
+  setSelectedReport(null);
+  setCommentText("");
 
+  message.success("Тэмдэглэл хадгалагдлаа");
+};
   return (
     <Layout>
       <Header
@@ -189,13 +186,6 @@ const savedReports =
             </Text>
           </div>
 
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setOpen(true)}
-          >
-            Тайлан илгээх
-          </Button>
         </div>
 
         {reports.map((report) => (
@@ -240,111 +230,46 @@ const savedReports =
               </a>
             </div>
 
+            <Button
+            type="primary"
+            size="small"
+            style={{ marginBottom: 15 }}
+            onClick={() => handleComment(report)}
+            >
+            Тэмдэглэл бичих
+            </Button>
+
+
+
             {report.comment && (
-              <Alert
-                style={{
-                  marginTop: 20,
-                }}
+            <Alert
+                style={{ marginTop: 20 }}
                 type="info"
                 showIcon
                 message="Багшийн тэмдэглэл"
-                description={
-                  report.comment
-                }
-              />
+                description={report.comment}
+            />
             )}
           </Card>
         ))}
-
         <Modal
-          title="Тайлан илгээх"
-          open={open}
-          footer={null}
-          onCancel={() =>
-            setOpen(false)
-          }
-          width={700}
+        title="Багшийн тэмдэглэл"
+        open={commentOpen}
+        onOk={saveComment}
+        onCancel={() => setCommentOpen(false)}
+        okText="Хадгалах"
+        cancelText="Болих"
         >
-          <Form
-            layout="vertical"
-            form={form}
-            onFinish={handleSubmit}
-          >
-            <Form.Item
-              label="Тайлангийн гарчиг"
-              name="title"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    "Гарчиг оруулна уу",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item
-              label="Долоо хоног"
-              name="week"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    "Долоо хоног оруулна уу",
-                },
-              ]}
-            >
-              <Input placeholder="Жишээ: 3-р долоо хоног" />
-            </Form.Item>
-
-            <Form.Item
-              label="Тайлбар"
-              name="description"
-              rules={[
-                {
-                  required: true,
-                  message:
-                    "Тайлбар оруулна уу",
-                },
-              ]}
-            >
-              <Input.TextArea
-                rows={5}
-              />
-            </Form.Item>
-
-            <Form.Item
-              label="PDF файл"
-              name="file"
-              valuePropName="fileList"
-            >
-              <Upload
-                beforeUpload={() =>
-                  false
-                }
-                accept=".pdf"
-                maxCount={1}
-              >
-                <Button
-                  icon={
-                    <UploadOutlined />
-                  }
-                >
-                  PDF сонгох
-                </Button>
-              </Upload>
-            </Form.Item>
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-            >
-              Тайлан илгээх
-            </Button>
-          </Form>
+        <Input.TextArea
+            rows={5}
+            value={commentText}
+            onChange={(e) =>
+            setCommentText(e.target.value)
+            }
+            placeholder="Тэмдэглэл бичнэ үү..."
+        />
         </Modal>
+
       </Content>
 
       <Footer

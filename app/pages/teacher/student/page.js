@@ -14,22 +14,18 @@ import {
 } from "@ant-design/icons";
 
 import { Layout, Menu, theme, Button } from "antd";
-import Home from "../../home/home";
-import Home1 from "../../home/home1";
-import Home2 from "../../home/home2";
-import Home3 from "../../home/home3";
-import SHome from "../../student/home/shome";
+import Student from "./student";
 
 const { Header, Content, Footer } = Layout;
 
-export default function TeacherHomePage() {
+export default function StudentPage() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const currentYear = new Date().getFullYear();
 
-  const [current, setCurrent] = useState("1");
+  const [current, setCurrent] = useState("3");
 
   const onClick = (e) => {
     console.log("click ", e);
@@ -68,7 +64,7 @@ export default function TeacherHomePage() {
     <Layout>
       <Header style={{background: '#ffffff'}}>
         <div className={styles.header}>
-          <Link href="/pages/employer/home" className={styles.title}>
+          <Link href="/pages/student/home" className={styles.title}>
             <img
               src="/logo.png"
               alt="logo"
@@ -105,10 +101,7 @@ export default function TeacherHomePage() {
             borderRadius: borderRadiusLG,
           }}
         >
-            <Home/>
-            <Home1/>
-            <Home2/>
-            <SHome/>
+          <Student/>
 
         </div>
       </Content>

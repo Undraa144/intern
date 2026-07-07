@@ -1,0 +1,103 @@
+.header {
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.content {
+  padding: 32px;
+  background: #EDEAFF;
+  min-height: calc(100vh - 128px);
+}
+
+.reportHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h2,
+  h1 {
+    margin-bottom: 4px;
+  }
+}
+
+.reportCard {
+  margin-bottom: 24px;
+  border-radius: 20px;
+  border: 1px solid #e8e8e8;
+
+  :global(.ant-card-body) {
+    padding: 24px;
+  }
+}
+
+.status {
+  margin: 12px 0;
+}
+
+.fileLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1677ff;
+  margin-top: 12px;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    color: #4096ff;
+  }
+}
+
+.comment {
+  margin-top: 20px;
+  border-radius: 12px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+}
+
+:global(.ant-modal-content) {
+  border-radius: 20px;
+}
+
+:global(.ant-form-item-label > label) {
+  font-weight: 600;
+}
+
+:global(.ant-upload-wrapper) {
+  width: 100%;
+}
+
+:global(.ant-btn-primary) {
+  border-radius: 8px;
+}
+
+:global(.ant-input),
+:global(.ant-input-textarea textarea) {
+  border-radius: 8px;
+}
+
+:global(.ant-card) {
+  transition: all 0.2s ease;
+}
+
+:global(.ant-card:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}

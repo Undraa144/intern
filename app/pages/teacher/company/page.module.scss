@@ -1,0 +1,27 @@
+.header {
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.menu {
+  flex: 1;
+  justify-content: center;
+  border-bottom: none !important;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.searchSection {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+  background: #f4f0ff;
+}

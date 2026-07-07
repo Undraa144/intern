@@ -1,0 +1,86 @@
+.header {
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.menu {
+  flex: 1;
+  justify-content: center;
+  border-bottom: none !important;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+.content {
+  padding: 32px;
+  background: #EDEAFF;
+  min-height: calc(100vh - 128px);
+}
+
+.pageTitle {
+  margin-bottom: 24px;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 24px;
+}
+
+.leftCard,
+.rightCard {
+  border-radius: 20px;
+
+  :global(.ant-card-body) {
+    padding: 24px;
+  }
+}
+
+.avatarSection {
+  text-align: center;
+}
+
+.avatarSection :global(.ant-avatar) {
+  background: #1677ff;
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.contact {
+  margin: 24px 0;
+
+  p {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    color: #555;
+  }
+}
+
+.profileHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.bio {
+  margin-top: 20px;
+}
+
+.skillSection {
+  margin-top: 20px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
