@@ -99,7 +99,7 @@ const jobs = [
     languages: ["Монгол", "Англи"],
   },
     {
-    company: "Ub Daatgal ",
+    company: "Ub Даатгал ",
     title: "Human Resource",
     image: "/company.jpeg",
     color: "#e8f6ff",

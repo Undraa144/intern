@@ -13,18 +13,18 @@ import {
 } from "@ant-design/icons";
 
 import { Layout, Menu, theme, Button } from "antd";
-import Ad from "./ad";
+import Request from "./request";
 
 const { Header, Content, Footer } = Layout;
 
-export default function AdPage() {
+export default function RequestPage() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const currentYear = new Date().getFullYear();
 
-  const [current, setCurrent] = useState("2");
+  const [current, setCurrent] = useState("3");
 
   const onClick = (e) => {
     console.log("click ", e);
@@ -95,7 +95,8 @@ export default function AdPage() {
             borderRadius: borderRadiusLG,
           }}
         >
-            <Ad/>
+            <Request/>
+
         </div>
       </Content>
 

@@ -17,7 +17,67 @@
 .card{
     background: #ffffff;
     max-height: 50px;
-    max-width: 200px;
+    max-width: 200px;.profilePage {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.companyCard {
+  margin-bottom: 24px;
+  border-radius: 16px;
+}
+
+.companyInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.rating {
+  margin-top: 8px;
+  color: #f0bc00;
+  font-weight: 600;
+}
+
+.infoCard {
+  border-radius: 16px;
+}
+
+.address,
+.description {
+  margin-top: 20px;
+}
+
+.address label,
+.description label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
     border: solid 1px #666;
     border-radius: 20px;
+}
+.mapCard {
+  margin-top: 24px;
+  border-radius: 16px;
+
+  iframe {
+    margin-top: 12px;
+  }
+}
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+
+  a {
+    color: #1677ff;
+  }
 }

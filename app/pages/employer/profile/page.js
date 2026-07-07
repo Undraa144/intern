@@ -17,7 +17,7 @@ import Profile from "./profile";
 
 const { Header, Content, Footer } = Layout;
 
-export default function StudentHomePage() {
+export default function EmployerHomePage() {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();

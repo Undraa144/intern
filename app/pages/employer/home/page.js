@@ -17,6 +17,7 @@ import Home from "../../home/home";
 import Home1 from "../../home/home1";
 import Home2 from "../../home/home2";
 import Home3 from "../../home/home3";
+import SHome from "../../student/home/shome";
 
 const { Header, Content, Footer } = Layout;
 
@@ -101,6 +102,7 @@ export default function StudentHomePage() {
             <Home/>
             <Home1/>
             <Home2/>
+            <SHome/>
 
         </div>
       </Content>

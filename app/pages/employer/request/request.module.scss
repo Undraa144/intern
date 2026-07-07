@@ -1,0 +1,115 @@
+.container {
+  padding: 24px;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.card {
+  margin-bottom: 16px;
+  border-radius: 20px;
+
+  :global(.ant-card-body) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #1677ff;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.info {
+  h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #6b7280;
+  }
+}
+
+.meta {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.gpa {
+  background: #f3f4f6;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.position {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailBtn {
+  border-radius: 8px;
+}
+
+.approveBtn {
+  border-radius: 8px;
+}
+
+.rejectBtn {
+  border-radius: 8px;
+}
+
+.status {
+  margin-bottom: 8px;
+  text-align: right;
+}
+
+.tabs {
+  margin-bottom: 24px;
+
+  :global(.ant-tag) {
+    border-radius: 999px;
+  }
+}
