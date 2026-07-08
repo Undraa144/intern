@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import { Button, Tag, Card } from "antd";
+import {
+  CheckCircleOutlined ,
+  ClockCircleOutlined ,
+  CloseCircleOutlined ,
+  PlusCircleOutlined,
+
+ } from "@ant-design/icons"
 import styles from "./request.module.scss";
 
 export default function Request() {
@@ -69,10 +76,49 @@ export default function Request() {
     <div className={styles.container}>
       <h1>Ирсэн хүсэлтүүд</h1>
 
-      <p>
-        Бүгд ({allCount}) | Хүлээгдэж буй ({pendingCount})
-        | Зөвшөөрсөн ({approvedCount}) | Татгалзсан ({rejectedCount})
-      </p>
+          <div className={styles.stats}>
+            <div className={styles.countCard}>
+              <div>
+                <h2>{allCount}</h2>
+                <p> Нийт хүсэлт</p>
+              </div>
+              <div className={styles.iconBox}>
+                <PlusCircleOutlined />
+              </div>
+            </div>
+            <div className={styles.approvedCard}>
+              <div>
+                <h2>{approvedCount}</h2>
+                <p>Зөвшөөрөгдсөн</p>
+              </div>
+
+              <div className={styles.iconBox}>
+                <CheckCircleOutlined />
+              </div>
+            </div>
+
+            <div className={styles.pendingCard}>
+              <div>
+                <h2>{pendingCount}</h2>
+                <p>Хүлээгдэж буй</p>
+              </div>
+
+              <div className={styles.iconBox}>
+                <ClockCircleOutlined />
+              </div>
+            </div>
+
+            <div className={styles.rejectedCard}>
+              <div>
+                <h2>{rejectedCount}</h2>
+                <p>Татгалзсан</p>
+              </div>
+
+              <div className={styles.iconBox}>
+                <CloseCircleOutlined />
+              </div>
+            </div>
+          </div>
 
       {applications.map((item) => (
         <Card className={styles.card}>

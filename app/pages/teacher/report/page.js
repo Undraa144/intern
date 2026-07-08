@@ -30,6 +30,7 @@ import {
   Upload,
   message,
 } from "antd";
+import MainLayout from "@/app/MainLayout";
 
 const { Header, Content, Footer } = Layout;
 const { Title, Text } = Typography;
@@ -76,38 +77,6 @@ const [commentText, setCommentText] = useState("");
     }
   }, []);
 
-  const onClick = ({ key }) => {
-    setCurrent(key);
-  };
-
-  const currentYear = new Date().getFullYear();
-  const menuItems = [
-    {
-      key: "1",
-      label: <Link href="/pages/teacher/home">Тойм</Link>,
-      icon: <AppstoreOutlined />,
-    },
-    {
-      key: "2",
-      label: <Link href="/pages/teacher/company">Компани </Link>,
-      icon: <BankOutlined />,
-    },
-    {
-      key: "3",
-      label: <Link href="/pages/teacher/student">Оюутан </Link>,
-      icon: <TeamOutlined />,
-    },
-    {
-      key: "4",
-      label: <Link href="/pages/teacher/report">Тайлан</Link>,
-      icon: <SolutionOutlined />,
-    },
-    {
-      key: "5",
-      label: <Link href="/pages/teacher/profile">Профайл</Link>,
-      icon: <UserOutlined />,
-    },
-  ];
 
 const handleComment = (report) => {
   setSelectedReport(report);
@@ -140,41 +109,7 @@ const saveComment = () => {
   message.success("Тэмдэглэл хадгалагдлаа");
 };
   return (
-    <Layout>
-      <Header
-        style={{
-          background: "#fff",
-          padding: "0 24px",
-        }}
-      >
-        <div className={styles.header}>
-          <Link href="/pages/student/home" className={styles.title}>
-            <img
-              src="/logo.png"
-              alt="logo"
-              className={styles.logo}
-              width={200}
-              height={25}
-            />
-          </Link>
-
-          <Menu
-            mode="horizontal"
-            selectedKeys={[current]}
-            items={menuItems}
-            onClick={onClick}
-            className={styles.menu}
-          />
-
-          <div className={styles.actions}>
-            <Button>
-              <Link href="/">Sign Out</Link>
-            </Button>
-
-          </div>
-        </div>
-      </Header>
-
+    <MainLayout role="teacher">
       <Content className={styles.content}>
         <div className={styles.reportHeader}>
           <div>
@@ -271,15 +206,7 @@ const saveComment = () => {
         </Modal>
 
       </Content>
+    </MainLayout>
 
-      <Footer
-        style={{
-          textAlign: "center",
-          background: "#fff",
-        }}
-      >
-        InternHub © {currentYear}
-      </Footer>
-    </Layout>
   );
 }

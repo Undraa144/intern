@@ -1,17 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Upload } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 
 import {
-  Layout,
-  Menu,
   Button,
   Card,
   Avatar,
-  Tag,
   Input,
   Row,
   Col,
@@ -19,24 +13,17 @@ import {
 } from "antd";
 
 import {
-  AppstoreOutlined,
-  BankOutlined ,
-  TeamOutlined ,
-  SolutionOutlined ,
-  UserOutlined,
   EditOutlined,
   MailOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
 
 import styles from "./page.module.scss";
+import MainLayout from "@/app/MainLayout";
 
-const { Header, Content, Footer } = Layout;
 const { Title, Text } = Typography;
 
 export default function ProfilePage() {
-  const [current, setCurrent] = useState("5");
-  const currentYear = new Date().getFullYear();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -92,74 +79,9 @@ const handleSave = () => {
   setIsEditing(false);
 };
 
-  const onClick = (e) => {
-    setCurrent(e.key);
-  };
 
-  const menuItems = [
-    {
-      key: "1",
-      label: <Link href="/pages/teacher/home">Тойм</Link>,
-      icon: <AppstoreOutlined />,
-    },
-    {
-      key: "2",
-      label: <Link href="/pages/teacher/company">Компани </Link>,
-      icon: <BankOutlined />,
-    },
-    {
-      key: "3",
-      label: <Link href="/pages/teacher/student">Оюутан </Link>,
-      icon: <TeamOutlined />,
-    },
-    {
-      key: "4",
-      label: <Link href="/pages/teacher/report">Тайлан</Link>,
-      icon: <SolutionOutlined />,
-    },
-    {
-      key: "5",
-      label: <Link href="/pages/teacher/profile">Профайл</Link>,
-      icon: <UserOutlined />,
-    },
-  ];
   return (
-    <Layout>
-      <Header
-        style={{
-          background: "#fff",
-          padding: "0 40px",
-        }}
-      >
-        <div className={styles.header}>
-          <Link href="/pages/student/home">
-            <img
-              src="/logo.png"
-              alt="logo"
-              width={180}
-              height={40}
-              className={styles.logo}
-            />
-          </Link>
-
-          <Menu
-            mode="horizontal"
-            selectedKeys={[current]}
-            items={menuItems}
-            onClick={onClick}
-            className={styles.menu}
-          />
-
-          <div className={styles.actions}>
-            <Button>
-              <Link href="/">Sign Out</Link>
-            </Button>
-
-          </div>
-        </div>
-      </Header>
-
-      <Content className={styles.content}>
+    <MainLayout role="teacher">
         <h1 className={styles.pageTitle}>
           Профайл
         </h1>
@@ -313,16 +235,7 @@ const handleSave = () => {
             </div>
           </Card>
         </div>
-      </Content>
+    </MainLayout>
 
-      <Footer
-        style={{
-          textAlign: "center",
-          background: "#fff",
-        }}
-      >
-        InternHub © {currentYear}
-      </Footer>
-    </Layout>
   );
 }

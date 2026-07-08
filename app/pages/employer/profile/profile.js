@@ -21,7 +21,7 @@ import {
   StarFilled ,
 } from "@ant-design/icons";
 
-import styles from "./page.module.scss";
+import styles from "./profile.module.scss"
 
 const {  Content  } = Layout;
 const { Title, Text } = Typography;

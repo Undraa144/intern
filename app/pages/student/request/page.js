@@ -1,16 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 import styles from "./page.module.scss";
 
 import {
-  AppstoreOutlined,
-  FileSearchOutlined,
-  InboxOutlined,
-  CopyOutlined,
-  UserOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
@@ -18,14 +12,13 @@ import {
 
 import {
   Layout,
-  Menu,
   theme,
-  Button,
   Card,
   Tag,
 } from "antd";
+import MainLayout from "@/app/MainLayout";
 
-const { Header, Content, Footer } = Layout;
+const {  Content,  } = Layout;
 
 export default function RequestPage() {
   const [requests, setRequests] = useState([]);
@@ -49,77 +42,10 @@ export default function RequestPage() {
     (item) => item.status === "rejected"
   ).length;
 
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
-  const currentYear = new Date().getFullYear();
-
-  const [current, setCurrent] = useState("3");
-
-  const onClick = (e) => {
-    setCurrent(e.key);
-  };
-
-  const menuItems = [
-    {
-      key: "1",
-      label: <Link href="/pages/student/home">Тойм</Link>,
-      icon: <AppstoreOutlined />,
-    },
-    {
-      key: "2",
-      label: <Link href="/pages/student/search">Зар хайх</Link>,
-      icon: <FileSearchOutlined />,
-    },
-    {
-      key: "3",
-      label: <Link href="/pages/student/request">Миний хүсэлтүүд</Link>,
-      icon: <InboxOutlined />,
-    },
-    {
-      key: "4",
-      label: <Link href="/pages/student/report">Тайлан</Link>,
-      icon: <CopyOutlined />,
-    },
-    {
-      key: "5",
-      label: <Link href="/pages/student/profile">Профайл</Link>,
-      icon: <UserOutlined />,
-    },
-  ];
 
   return (
-    <Layout>
-      <Header style={{ background: "#ffffff" }}>
-        <div className={styles.header}>
-          <Link href="/pages/student/home" className={styles.title}>
-            <img
-              src="/logo.png"
-              alt="logo"
-              className={styles.logo}
-              width={200}
-              height={25}
-            />
-          </Link>
-
-          <Menu
-            mode="horizontal"
-            selectedKeys={[current]}
-            items={menuItems}
-            onClick={onClick}
-            className={styles.menu}
-          />
-
-          <div className={styles.actions}>
-            <Button className={styles.signin}>
-              <Link href="/">Sign Out</Link>
-            </Button>
-
-          </div>
-        </div>
-      </Header>
-
+    <MainLayout role="student">
       <Content>
         <div className={styles.content}
         >
@@ -209,15 +135,7 @@ export default function RequestPage() {
           )}
         </div>
       </Content>
+    </MainLayout>
 
-      <Footer
-        style={{
-          textAlign: "center",
-          background: "white",
-        }}
-      >
-        InternHub © {currentYear}
-      </Footer>
-    </Layout>
   );
 }

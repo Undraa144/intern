@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Image from "next/image";
@@ -217,12 +218,12 @@ const [coverLetter, setCoverLetter] = useState("");
 
             <div className={styles.bottom}>
               <span>{job.salary}</span>
-
-              <Button
-                onClick={() => handleApply(job)}
-              >
+              
+              <Link href="/pages/student/company">
+              <Button>
                 Дэлэгрэнгүй харах
               </Button>
+              </Link>
             </div>
           </div>
         ))}

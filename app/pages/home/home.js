@@ -44,56 +44,6 @@ export default function Home() {
           className={styles.image}
         />
       </div>
-
-      <div className={styles.stats}>
-        <div className={styles.statCard}>
-          <div className={styles.iconBox}>
-            <Image
-              src="/job.jpeg"
-              alt="job"
-              width={40}
-              height={40}
-            />
-          </div>
-
-          <div className={styles.content}>
-            <h3>1</h3>
-            <p>Live Job</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.iconBox}>
-            <Image
-              src="/company.jpeg"
-              alt="company"
-              width={40}
-              height={40}
-            />
-          </div>
-
-          <div className={styles.content}>
-            <h3>1</h3>
-            <p>Companies</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.iconBox}>
-            <Image
-              src="/job.jpeg"
-              alt="job"
-              width={40}
-              height={40}
-            />
-          </div>
-
-          <div className={styles.content}>
-            <h3>1</h3>
-            <p>New Jobs</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

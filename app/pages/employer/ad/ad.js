@@ -14,12 +14,14 @@ import {
 } from "antd";
 
 import {
+    FundOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   DollarOutlined,
   TeamOutlined,
   EyeOutlined,
+  KeyOutlined,
   CalendarOutlined,
 } from "@ant-design/icons";
 
@@ -45,6 +47,8 @@ export default function Ad() {
           description:
             "React болон Next.js ашиглан бүтээгдэхүүний интерфейс хөгжүүлнэ.",
           salary: "800 - 1200 мянга ₮",
+          gpa: 3,
+          skills: "Python , MySQL, C++",
           positions: 2,
           views: 142,
           deadline: "2026.07.20",
@@ -56,6 +60,8 @@ export default function Ad() {
           description:
             "Python болон SQL ашиглан өгөгдөл боловсруулах.",
           salary: "600 - 900 мянга ₮",
+          gpa: 3,
+          skills: "Python , MySQL, C++",
           positions: 1,
           views: 98,
           deadline: "2026.07.15",
@@ -200,6 +206,16 @@ const handleDelete = (id) => {
             </span>
 
             <span>
+                <FundOutlined />
+                {job.gpa} дүн
+            </span>
+
+            <span>
+                <KeyOutlined /> 
+                {job.skills} 
+            </span>
+
+            <span>
               <EyeOutlined />
               {job.views} үзэлт
             </span>
@@ -210,9 +226,6 @@ const handleDelete = (id) => {
             </span>
           </div>
 
-          <Button className={styles.closeBtn}>
-            Хаах
-          </Button>
         </Card>
       ))}
 
@@ -259,6 +272,20 @@ const handleDelete = (id) => {
           <Form.Item
             label="Цалин"
             name="salary"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="GPA"
+            name="gpa"
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Чадварууд"
+            name="skills"
           >
             <Input />
           </Form.Item>

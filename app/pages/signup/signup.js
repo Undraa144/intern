@@ -314,21 +314,9 @@ const onFinish = async (values, role) => {
                   },
                 ]}
               >
-                <Input placeholder="Full Name" />
+                <Input placeholder="Company Name" />
               </Form.Item>
 
-              <Form.Item
-                name="username"
-                className={styles.half}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your username!",
-                  },
-                ]}
-              >
-                <Input placeholder="Username" />
-              </Form.Item>
             </div>
 
             <Form.Item

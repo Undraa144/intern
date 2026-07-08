@@ -17,6 +17,7 @@ import {
 
 import styles from "./page.module.scss";
 import SHome from "../home/shome";
+import MainLayout from "@/app/MainLayout";
 
 const { Header } = Layout;
 
@@ -42,70 +43,9 @@ const onSearch = (value) => {
     { value: "Software Engineer" },
   ];
 
-  const menuItems = [
-    {
-      key: "1",
-      label: <Link href="/pages/student/home">Тойм</Link>,
-      icon: <AppstoreOutlined />,
-    },
-    {
-      key: "2",
-      label: <Link href="/pages/student/search">Зар хайх</Link>,
-      icon: <FileSearchOutlined />,
-    },
-    {
-      key: "3",
-      label: <Link href="/pages/student/request">Миний хүсэлтүүд</Link>,
-      icon: <InboxOutlined />,
-    },
-    {
-      key: "4",
-      label: <Link href="/pages/student/report">Тайлан</Link>,
-      icon: <CopyOutlined />,
-    },
-    {
-      key: "5",
-      label: <Link href="/pages/student/profile">Профайл</Link>,
-      icon: <UserOutlined />,
-    },
-  ];
 
   return (
-    <>
-      <Header
-        style={{
-          background: "#fff",
-          padding: "0 40px",
-        }}
-      >
-        <div className={styles.header}>
-          <Link href="/pages/student/home" className={styles.title}>
-            <img
-              src="/logo.png"
-              alt="logo"
-              width={180}
-              height={40}
-              className={styles.logo}
-            />
-          </Link>
-
-          <Menu
-            mode="horizontal"
-            selectedKeys={[current]}
-            items={menuItems}
-            onClick={onClick}
-            className={styles.menu}
-          />
-
-          <div className={styles.actions}>
-            <Button>
-              <Link href="/">Sign Out</Link>
-            </Button>
-
-          </div>
-        </div>
-      </Header>
-
+    <MainLayout role="student">
       <div className={styles.searchSection}>
         <AutoComplete
           options={options}
@@ -121,6 +61,6 @@ const onSearch = (value) => {
       </div>
 
       <SHome searchText={searchText}/>
-    </>
+    </MainLayout>
   );
 }

@@ -9,8 +9,23 @@ import styles from "./login.module.scss";
 
 export default function Login() {
   const [form] = Form.useForm();
+    const router = useRouter();
 
-  const API_BASE = process.env.BASE || "http://localhost:8088"
+const onFinish = async (values, role) => {
+    if (role === "student") {
+      router.push("/pages/student/home");
+    }
+
+    if (role === "employer") {
+      router.push("/pages/employer/home");
+    }
+
+    if (role === "teacher") {
+      router.push("/pages/teacher/home");
+    }
+  };
+
+ /* const API_BASE = process.env.BASE || "http://localhost:8088"
 
   const onFinish = async (values) => {
     try {
@@ -51,6 +66,8 @@ export default function Login() {
       alert("Сервертэй холбогдож чадсангүй.");
     }
   };
+  */
+
 
   const items = [
   {
@@ -63,7 +80,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have  any account?{" "}
-                <Link href="/pages/login">Sign Up</Link>
+                <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
 
@@ -72,7 +89,8 @@ export default function Login() {
           <Form
             form={form}
             layout="vertical"
-            onFinish={onFinish}
+            onFinish={(values) => onFinish(values, "student")}
+
           >
 
             <Form.Item
@@ -130,7 +148,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              <Link href="/pages/student/home">Log In</Link> 
+              Log In
             </Button>
           </Form>
       </div>
@@ -146,7 +164,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have  any account?{" "}
-                <Link href="/pages/login">Sign Up</Link>
+                <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
 
@@ -155,7 +173,7 @@ export default function Login() {
           <Form
             form={form}
             layout="vertical"
-            onFinish={onFinish}
+            onFinish={(values) => onFinish(values, "employer")}
           >
 
             <Form.Item
@@ -213,7 +231,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              <Link href="/pages/employer/home">Log In</Link> 
+              Log In
             </Button>
           </Form>
       </div>
@@ -229,7 +247,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have  any account?{" "}
-                <Link href="/pages/login">Sign Up</Link>
+                <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
 
@@ -238,7 +256,7 @@ export default function Login() {
           <Form
             form={form}
             layout="vertical"
-            onFinish={onFinish}
+            onFinish={(values) => onFinish(values, "teacher")}
           >
 
             <Form.Item
@@ -296,7 +314,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              <Link href="/pages/teacher/home">Log In</Link> 
+              Log In
             </Button>
           </Form>
       </div>
