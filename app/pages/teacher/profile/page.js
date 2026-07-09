@@ -16,6 +16,7 @@ import {
   EditOutlined,
   MailOutlined,
   PhoneOutlined,
+  KeyOutlined ,
 } from "@ant-design/icons";
 
 import styles from "./page.module.scss";
@@ -30,7 +31,7 @@ export default function ProfilePage() {
 const [profile, setProfile] = useState({
   fullName: "Бат",
   major: "IT",
-  phone: "99999999",
+  phone: "99887766",
   email: "bat@example.mn",
   id: "F.IT3",
 
@@ -46,7 +47,7 @@ useEffect(() => {
     setProfile({
       fullName:
         data.fullName ||
-        "Болор",
+        "Бат",
 
       major:
         data.major ||
@@ -54,17 +55,16 @@ useEffect(() => {
 
       phone:
         data.phone ||
-        "99112233",
+        "99887766",
 
       email:
         data.email ||
-        "bolor@example.mn",
+        "bat@example.mn",
 
 
-      bio:
-        data.bio ||
-        "F.ITM301 хичээлийн багш",
-
+      id:
+        data.id ||
+        "F.IT3",
 
     });
   }
@@ -114,6 +114,9 @@ const handleSave = () => {
 
               <p>
                 <PhoneOutlined /> {profile.phone}
+              </p>
+              <p>
+                <KeyOutlined /> {profile.id}
               </p>
 
             </div>
@@ -210,24 +213,6 @@ const handleSave = () => {
                   setProfile({
                     ...profile,
                     email:
-                      e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className={styles.bio}>
-              <label>
-                Товч танилцуулга
-              </label>
-
-              <Input.TextArea
-                rows={4}
-                disabled={!isEditing}
-                value={profile.bio}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    bio:
                       e.target.value,
                   })
                 }

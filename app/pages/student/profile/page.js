@@ -14,6 +14,7 @@ import {
   Row,
   Col,
   Typography,
+  Rate,
 } from "antd";
 
 import {
@@ -21,92 +22,78 @@ import {
   MailOutlined,
   PhoneOutlined,
   FileTextOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
 
-const {  Content,  } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
 export default function ProfilePage() {
-
   const [isEditing, setIsEditing] = useState(false);
+  const [reviews, setReviews] = useState([]);
 
-const [profile, setProfile] = useState({
-  fullName: "Батболдын Тэмүүлэн",
-  major: "Програм хангамж",
-  phone: "99112233",
-  email: "temuulen@example.mn",
-  gpa: "3.65",
-  bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
-  resume: "Resume.pdf",
-  skills: "React, Next.js, JavaScript, Python, SQL",
-  languages: "Монгол, English",
-});
+  const [profile, setProfile] = useState({
+    fullName: "Батболдын Тэмүүлэн",
+    major: "Програм хангамж",
+    phone: "99112233",
+    email: "temuulen@example.mn",
+    gpa: "3.65",
+    bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
+    resume: "Resume.pdf",
+    skills: "React, Next.js, JavaScript, Python, SQL",
+    languages: "Монгол, English",
+    teacherName: "",
+    teacherPhone: "",
+  });
 
 useEffect(() => {
-  const savedProfile =
-    localStorage.getItem("studentProfile");
+  const reviews =
+    JSON.parse(localStorage.getItem("studentReviews")) || [];
 
-  if (savedProfile) {
-    const data = JSON.parse(savedProfile);
-
-    setProfile({
-      fullName:
-        data.fullName ||
-        "Батболдын Тэмүүлэн",
-
-      major:
-        data.major ||
-        "Програм хангамж",
-
-      phone:
-        data.phone ||
-        "99112233",
-
-      email:
-        data.email ||
-        "temuulen@example.mn",
-
-      gpa:
-        data.gpa ||
-        "3.65",
-
-      bio:
-        data.bio ||
-        "Гуравдугаар курсын програм хангамжийн оюутан.",
-
-      resume:
-        data.resume ||
-        "Resume.pdf",
-
-      skills:
-        data.skills ||
-        "React, Next.js, JavaScript, Python, SQL",
-
-      languages:
-        data.languages ||
-        "Монгол, English",
-    });
-  }
+  setReviews(reviews);
 }, []);
 
-const handleSave = () => {
-  localStorage.setItem(
-    "studentProfile",
-    JSON.stringify(profile)
-  );
+  useEffect(() => {
+  const savedReviews =
+    JSON.parse(localStorage.getItem("studentReviews")) || [];
 
-  setIsEditing(false);
-};
+  setReviews(savedReviews);
+}, []);
+
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("studentProfile");
+
+    if (savedProfile) {
+      const data = JSON.parse(savedProfile);
+
+      setProfile({
+        fullName: data.fullName || "Батболдын Тэмүүлэн",
+        major: data.major || "Програм хангамж",
+        phone: data.phone || "99112233",
+        email: data.email || "temuulen@example.mn",
+        gpa: data.gpa || "3.65",
+        bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
+        resume: data.resume || "Resume.pdf",
+        skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
+        languages: data.languages || "Монгол, English",
+        teacherName: data.teacherName || "",
+        teacherPhone: data.teacherPhone || "",
+      });
+    }
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem("studentProfile", JSON.stringify(profile));
+    setIsEditing(false);
+  };
 
   return (
     <MainLayout role="student">
       <Content className={styles.content}>
-        <h1 className={styles.pageTitle}>
-          Профайл
-        </h1>
+        <h1 className={styles.pageTitle}>Профайл</h1>
 
         <div className={styles.profileGrid}>
           <Card className={styles.leftCard}>
@@ -119,18 +106,12 @@ const handleSave = () => {
                   .slice(0, 2)}
               </Avatar>
 
-              <Title level={3}>
-                {profile.fullName}
-              </Title>
+              <Title level={3}>{profile.fullName}</Title>
 
-              <Text type="secondary">
-                {profile.major}
-              </Text>
+              <Text type="secondary">{profile.major}</Text>
 
               <div className={styles.tags}>
-                <Tag color="blue">
-                  GPA {profile.gpa}
-                </Tag>
+                <Tag color="blue">GPA {profile.gpa}</Tag>
               </div>
             </div>
 
@@ -144,31 +125,37 @@ const handleSave = () => {
               </p>
 
               <p>
-                <FileTextOutlined />
-                Resume.pdf
+                <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+              </p>
+            </div>
+
+            <div className={styles.contact} style={{ marginTop: 16 }}>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                Хариуцсан багш
+              </Text>
+
+              <p>
+                <UserOutlined /> {profile.teacherName || "Бат"}
+              </p>
+
+              <p>
+                <PhoneOutlined /> {profile.teacherPhone || "99887766"}
               </p>
             </div>
           </Card>
 
           <Card className={styles.rightCard}>
             <div className={styles.profileHeader}>
-              <Title level={4}>
-                Хувийн мэдээлэл
-              </Title>
+              <Title level={4}>Хувийн мэдээлэл</Title>
 
               {isEditing ? (
-                <Button
-                  type="primary"
-                  onClick={handleSave}
-                >
+                <Button type="primary" onClick={handleSave}>
                   Хадгалах
                 </Button>
               ) : (
                 <Button
                   icon={<EditOutlined />}
-                  onClick={() =>
-                    setIsEditing(true)
-                  }
+                  onClick={() => setIsEditing(true)}
                 >
                   Засах
                 </Button>
@@ -185,8 +172,7 @@ const handleSave = () => {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      fullName:
-                        e.target.value,
+                      fullName: e.target.value,
                     })
                   }
                 />
@@ -201,18 +187,14 @@ const handleSave = () => {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      major:
-                        e.target.value,
+                      major: e.target.value,
                     })
                   }
                 />
               </Col>
             </Row>
 
-            <Row
-              gutter={16}
-              style={{ marginTop: 16 }}
-            >
+            <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
                 <label>Утас</label>
 
@@ -222,8 +204,7 @@ const handleSave = () => {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      phone:
-                        e.target.value,
+                      phone: e.target.value,
                     })
                   }
                 />
@@ -238,8 +219,7 @@ const handleSave = () => {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      gpa:
-                        e.target.value,
+                      gpa: e.target.value,
                     })
                   }
                 />
@@ -255,44 +235,40 @@ const handleSave = () => {
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    email:
-                      e.target.value,
+                    email: e.target.value,
                   })
                 }
               />
             </div>
-            <div className={styles.bio}>
-            <label>Resume (PDF)</label>
 
-            {isEditing ? (
+            <div className={styles.bio}>
+              <label>Resume (PDF)</label>
+
+              {isEditing ? (
                 <Upload
-                beforeUpload={() => false}
-                maxCount={1}
-                accept=".pdf"
-                onChange={({ fileList }) => {
+                  beforeUpload={() => false}
+                  maxCount={1}
+                  accept=".pdf"
+                  onChange={({ fileList }) => {
                     if (fileList.length > 0) {
-                    setProfile({
+                      setProfile({
                         ...profile,
                         resume: fileList[0].name,
-                    });
+                      });
                     }
-                }}
+                  }}
                 >
-                <Button icon={<UploadOutlined />}>
-                    Resume сонгох
-                </Button>
+                  <Button icon={<UploadOutlined />}>Resume сонгох</Button>
                 </Upload>
-            ) : (
+              ) : (
                 <p>
-                <FileTextOutlined />{" "}
-                {profile.resume || "Resume байхгүй"}
+                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
                 </p>
-            )}
+              )}
             </div>
+
             <div className={styles.bio}>
-              <label>
-                Товч танилцуулга
-              </label>
+              <label>Товч танилцуулга</label>
 
               <Input.TextArea
                 rows={4}
@@ -301,67 +277,91 @@ const handleSave = () => {
                 onChange={(e) =>
                   setProfile({
                     ...profile,
-                    bio:
-                      e.target.value,
+                    bio: e.target.value,
                   })
                 }
               />
             </div>
-            <div className={styles.skillSection}>
-            <label>Чадварууд</label>
 
-            {isEditing ? (
+            <div className={styles.skillSection}>
+              <label>Чадварууд</label>
+
+              {isEditing ? (
                 <Input
-                value={profile.skills || ""}
-                onChange={(e) =>
+                  value={profile.skills || ""}
+                  onChange={(e) =>
                     setProfile({
-                    ...profile,
-                    skills: e.target.value,
+                      ...profile,
+                      skills: e.target.value,
                     })
-                }
+                  }
                 />
-            ) : (
+              ) : (
                 <div className={styles.tags}>
-                {(profile.skills || "")
+                  {(profile.skills || "")
                     .split(",")
                     .filter((item) => item.trim())
                     .map((skill, index) => (
-                    <Tag key={index}>
-                        {skill.trim()}
-                    </Tag>
+                      <Tag key={index}>{skill.trim()}</Tag>
                     ))}
                 </div>
-            )}
+              )}
             </div>
 
             <div className={styles.skillSection}>
-            <label>Хэл</label>
+              <label>Хэл</label>
 
-            {isEditing ? (
+              {isEditing ? (
                 <Input
-                value={profile.languages || ""}
-                onChange={(e) =>
+                  value={profile.languages || ""}
+                  onChange={(e) =>
                     setProfile({
-                    ...profile,
-                    languages: e.target.value,
+                      ...profile,
+                      languages: e.target.value,
                     })
-                }
+                  }
                 />
-            ) : (
+              ) : (
                 <div className={styles.tags}>
-                {(profile.languages || "")
+                  {(profile.languages || "")
                     .split(",")
                     .filter((item) => item.trim())
                     .map((lang, index) => (
-                    <Tag key={index}>
-                        {lang.trim()}
-                    </Tag>
+                      <Tag key={index}>{lang.trim()}</Tag>
                     ))}
                 </div>
-            )}
+              )}
             </div>
           </Card>
         </div>
+
+      <Card title="Үнэлгээ, сэтгэгдэл" style={{ marginTop: 30 }}>
+        {reviews.length === 0 ? (
+          <Text type="secondary">
+            Одоогоор сэтгэгдэл байхгүй.
+          </Text>
+        ) : (
+          reviews.map((item, index) => (
+            <Card key={index} size="small" style={{ marginBottom: 15 }}>
+              <Tag color={item.from === "Багш" ? "blue" : "green"}>
+                {item.from}
+              </Tag>
+
+              <div style={{ margin: "10px 0" }}>
+                <Rate disabled value={item.rate} />
+              </div>
+
+              <Text>{item.comment}</Text>
+
+              <br />
+
+              <Text type="secondary">
+                {item.date}
+              </Text>
+            </Card>
+          ))
+        )}
+      </Card>
       </Content>
     </MainLayout>
   );

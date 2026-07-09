@@ -529,7 +529,7 @@ export default function Ad({ searchText = "" }) {
           </Form.Item>          
 
           <Form.Item label="Цалин" name="salary">
-            <Input />
+            <InputNumber min={1} />
           </Form.Item>
 
           <Form.Item label="GPA" name="gpa">
@@ -552,6 +552,7 @@ export default function Ad({ searchText = "" }) {
             <InputNumber min={1} style={{ width: "100%" }} />
           </Form.Item>
 
+          
           <Form.Item label="Дуусах хугацаа" name="deadline">
             <Input placeholder="2026.07.20" />
           </Form.Item>

@@ -11,6 +11,7 @@ import {
   Space,
   Rate,
   Typography,
+  Tag,
 } from "antd";
 
 import {
@@ -122,12 +123,19 @@ export default function Student() {
     }
 
     const review = {
-      studentId: reviewingStudent.id,
-      studentName: reviewingStudent.name,
-      rate,
-      comment,
-      date: new Date().toLocaleDateString(),
-    };
+    from: "Багш",
+    rate,
+    comment,
+    date: new Date().toLocaleDateString(),
+  };
+
+  const reviews =
+    JSON.parse(localStorage.getItem("studentReviews")) || [];
+
+  localStorage.setItem(
+    "studentReviews",
+    JSON.stringify([...reviews, review])
+  );
 
     const oldReviews =
       JSON.parse(localStorage.getItem("studentReviews")) || [];
@@ -201,7 +209,30 @@ export default function Student() {
         }
         open={reviewOpen}
         onCancel={() => setReviewOpen(false)}
-        onOk={handleSaveReview}
+            onOk={() => {
+            const review = {
+                from: "Багш",
+                rate: rate,
+                comment,
+                date: new Date().toLocaleDateString(),
+            };
+
+            const oldReviews =
+                JSON.parse(localStorage.getItem("studentReviews")) || [];
+
+            const updatedReviews = [...oldReviews, review];
+
+            localStorage.setItem(
+                "studentReviews",
+                JSON.stringify(updatedReviews)
+            );
+
+            setReviews(updatedReviews);
+
+            setReviewOpen(false);
+            setRate(0);
+            setComment("");
+            }}
         okText="Хадгалах"
         cancelText="Болих"
       >
@@ -221,20 +252,25 @@ export default function Student() {
 
       <Card title="Үнэлгээ, сэтгэгдэл" style={{ marginTop: 30 }}>
         {reviews.length === 0 ? (
-          <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
+          <Text type="secondary">
+            Одоогоор сэтгэгдэл байхгүй.
+          </Text>
         ) : (
           reviews.map((item, index) => (
             <Card key={index} size="small" style={{ marginBottom: 15 }}>
-              <h3>{item.studentName}</h3>
+              <Tag color={item.from === "Багш" ? "blue" : "green"}>
+                {item.from}
+              </Tag>
 
-              <Rate disabled value={item.rate} />
+              <div style={{ margin: "10px 0" }}>
+                <Rate disabled value={item.rate} />
+              </div>
 
-              <div style={{ marginTop: 10 }}>{item.comment}</div>
+              <Text>{item.comment}</Text>
 
-              <Text
-                type="secondary"
-                style={{ display: "block", marginTop: 8 }}
-              >
+              <br />
+
+              <Text type="secondary">
                 {item.date}
               </Text>
             </Card>

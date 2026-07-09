@@ -100,6 +100,7 @@ useEffect(() => {
   }
 }, []);
 
+
 useEffect(() => {
   const savedReviews =
     JSON.parse(localStorage.getItem("studentReviews")) || [];
@@ -110,7 +111,7 @@ useEffect(() => {
 
 
   return (
-    <MainLayout role="student">
+    <MainLayout role="employer">
       <Content className={styles.content}>
         <h1 className={styles.pageTitle}>
           Профайл
@@ -363,21 +364,22 @@ useEffect(() => {
           title="Оюутанд үнэлгээ өгөх"
           open={reviewOpen}
           onCancel={() => setReviewOpen(false)}
-          onOk={() => {
+            onOk={() => {
             const review = {
-              rate,
-              comment,
-              date: new Date().toLocaleDateString(),
+                from: "Байгууллага",
+                rate: rate,
+                comment,
+                date: new Date().toLocaleDateString(),
             };
 
             const oldReviews =
-              JSON.parse(localStorage.getItem("studentReviews")) || [];
+                JSON.parse(localStorage.getItem("studentReviews")) || [];
 
             const updatedReviews = [...oldReviews, review];
 
             localStorage.setItem(
-              "studentReviews",
-              JSON.stringify(updatedReviews)
+                "studentReviews",
+                JSON.stringify(updatedReviews)
             );
 
             setReviews(updatedReviews);
@@ -385,7 +387,8 @@ useEffect(() => {
             setReviewOpen(false);
             setRate(0);
             setComment("");
-          }}
+            }}
+
           okText="Хадгалах"
           cancelText="Болих"
         >
@@ -406,37 +409,33 @@ useEffect(() => {
           </div>
         </Modal>
 
-        <Card
-          title="Үнэлгээ, сэтгэгдэл"
-          style={{ marginTop: 30 }}
-        >
-          {reviews.length === 0 ? (
-            <Text type="secondary">
-              Одоогоор сэтгэгдэл байхгүй.
-            </Text>
-          ) : (
-            reviews.map((item, index) => (
-              <Card
-                key={index}
-                size="small"
-                style={{ marginBottom: 15 }}
-              >
+      <Card title="Үнэлгээ, сэтгэгдэл" style={{ marginTop: 30 }}>
+        {reviews.length === 0 ? (
+          <Text type="secondary">
+            Одоогоор сэтгэгдэл байхгүй.
+          </Text>
+        ) : (
+          reviews.map((item, index) => (
+            <Card key={index} size="small" style={{ marginBottom: 15 }}>
+              <Tag color={item.from === "Багш" ? "blue" : "green"}>
+                {item.from}
+              </Tag>
+
+              <div style={{ margin: "10px 0" }}>
                 <Rate disabled value={item.rate} />
+              </div>
 
-                <div style={{ marginTop: 10 }}>
-                  {item.comment}
-                </div>
+              <Text>{item.comment}</Text>
 
-                <Text
-                  type="secondary"
-                  style={{ display: "block", marginTop: 8 }}
-                >
-                  {item.date}
-                </Text>
-              </Card>
-            ))
-          )}
-        </Card>
+              <br />
+
+              <Text type="secondary">
+                {item.date}
+              </Text>
+            </Card>
+          ))
+        )}
+      </Card>
       </Content>
     </MainLayout>
   );
