@@ -120,22 +120,10 @@ const onFinish = async (values, role) => {
             >
               <Input.Password placeholder="Password" />
             </Form.Item>
-
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
+              
             >
               <Checkbox>
                 Remember me
@@ -207,18 +195,7 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
+              
             >
               <Checkbox>
                 Remember me
@@ -290,18 +267,7 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
+              
             >
               <Checkbox>
                 Remember me

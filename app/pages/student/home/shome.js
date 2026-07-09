@@ -207,8 +207,8 @@ const [coverLetter, setCoverLetter] = useState("");
                 className={styles.logo}
               />
 
-              <h3>{job.title}</h3>
-              <p>{job.company}</p>
+              <h3>{job.title}</h3> 
+              <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
                 <span>Part Time</span>
@@ -219,11 +219,10 @@ const [coverLetter, setCoverLetter] = useState("");
             <div className={styles.bottom}>
               <span>{job.salary}</span>
               
-              <Link href="/pages/student/company">
-              <Button>
+              <Button 
+              onClick={() => handleApply(job)}>
                 Дэлэгрэнгүй харах
               </Button>
-              </Link>
             </div>
           </div>
         ))}
@@ -235,209 +234,209 @@ const [coverLetter, setCoverLetter] = useState("");
         </h3>
       )}
 
-<Modal
-  open={open}
-  footer={null}
-  onCancel={() => setOpen(false)}
-  width={800}
-  title={null}
->
-  {selectedJob && (
-    <>
-      <Title level={3}>
-        {selectedJob.title}
-      </Title>
-
-      <Text type="secondary">
-        {selectedJob.company}
-      </Text>
-
-      <Card
-        style={{
-          marginTop: 20,
-          marginBottom: 20,
-          background: "#f7f9fc",
-        }}
+      <Modal
+        open={open}
+        footer={null}
+        onCancel={() => setOpen(false)}
+        width={800}
+        title={null}
       >
-        <Row gutter={[24, 24]}>
-          <Col span={8}>
+        {selectedJob && (
+          <>
+            <Title level={3}>
+              {selectedJob.title}
+            </Title>
+
             <Text type="secondary">
-              <EnvironmentOutlined /> Байршил
+              {selectedJob.company}
             </Text>
-            <br />
-            <Text strong>
-              {selectedJob.location}
+
+            <Card
+              style={{
+                marginTop: 20,
+                marginBottom: 20,
+                background: "#f7f9fc",
+              }}
+            >
+              <Row gutter={[24, 24]}>
+                <Col span={8}>
+                  <Text type="secondary">
+                    <EnvironmentOutlined /> Байршил
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.location}
+                  </Text>
+                </Col>
+
+                <Col span={8}>
+                  <Text type="secondary">
+                    <ClockCircleOutlined /> Цаг
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.duration}
+                  </Text>
+                </Col>
+
+                <Col span={8}>
+                  <Text type="secondary">
+                    <DollarOutlined /> Цалин
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.salary}
+                  </Text>
+                </Col>
+
+                <Col span={8}>
+                  <Text type="secondary">
+                    <BookOutlined /> GPA
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.gpa}
+                  </Text>
+                </Col>
+
+                <Col span={8}>
+                  <Text type="secondary">
+                    <TeamOutlined /> Орон тоо
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.vacancies}
+                  </Text>
+                </Col>
+
+                <Col span={8}>
+                  <Text type="secondary">
+                    <CalendarOutlined /> Эцсийн хугацаа
+                  </Text>
+                  <br />
+                  <Text strong>
+                    {selectedJob.deadline}
+                  </Text>
+                </Col>
+              </Row>
+            </Card>
+
+            <Title level={5}>Тайлбар</Title>
+
+            <Text>
+              {selectedJob.description}
             </Text>
-          </Col>
 
-          <Col span={8}>
-            <Text type="secondary">
-              <ClockCircleOutlined /> Цаг
-            </Text>
-            <br />
-            <Text strong>
-              {selectedJob.duration}
-            </Text>
-          </Col>
+            <Divider />
 
-          <Col span={8}>
-            <Text type="secondary">
-              <DollarOutlined /> Цалин
-            </Text>
-            <br />
-            <Text strong>
-              {selectedJob.salary}
-            </Text>
-          </Col>
+            <Title level={5}>
+              Шаардлагатай мэргэжил
+            </Title>
 
-          <Col span={8}>
-            <Text type="secondary">
-              <BookOutlined /> GPA
-            </Text>
-            <br />
-            <Text strong>
-              {selectedJob.gpa}
-            </Text>
-          </Col>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              {selectedJob.majors.map((item) => (
+                <Tag key={item}>
+                  {item}
+                </Tag>
+              ))}
+            </div>
 
-          <Col span={8}>
-            <Text type="secondary">
-              <TeamOutlined /> Орон тоо
-            </Text>
-            <br />
-            <Text strong>
-              {selectedJob.vacancies}
-            </Text>
-          </Col>
+            <Title level={5}>
+              Шаардлагатай чадвар
+            </Title>
 
-          <Col span={8}>
-            <Text type="secondary">
-              <CalendarOutlined /> Эцсийн хугацаа
-            </Text>
-            <br />
-            <Text strong>
-              {selectedJob.deadline}
-            </Text>
-          </Col>
-        </Row>
-      </Card>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              {selectedJob.skills.map((item) => (
+                <Tag color="blue" key={item}>
+                  {item}
+                </Tag>
+              ))}
+            </div>
 
-      <Title level={5}>Тайлбар</Title>
+            <Title level={5}>Хэл</Title>
 
-      <Text>
-        {selectedJob.description}
-      </Text>
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginBottom: 20,
+              }}
+            >
+              {selectedJob.languages.map((item) => (
+                <Tag color="green" key={item}>
+                  {item}
+                </Tag>
+              ))}
+            </div>
 
-      <Divider />
+            <Divider />
 
-      <Title level={5}>
-        Шаардлагатай мэргэжил
-      </Title>
+            <Title level={5}>
+              Өргөдлийн захидал
+            </Title>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap",
-          marginBottom: 20,
-        }}
-      >
-        {selectedJob.majors.map((item) => (
-          <Tag key={item}>
-            {item}
-          </Tag>
-        ))}
-      </div>
+            <TextArea
+              rows={4}
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              placeholder="Яагаад энэ дадлагад тохирох талаараа бичнэ үү..."
+            />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: 12,
+                      marginTop: 24,
+                    }}
+                  >
+                    <Button onClick={() => setOpen(false)}>
+                      Хаах
+                    </Button>
 
-      <Title level={5}>
-        Шаардлагатай чадвар
-      </Title>
+            <Button
+              type="primary"
+              onClick={() => {
+                const request = {
+                  title: selectedJob.title,
+                  company: selectedJob.company,
+                  description: coverLetter,
+                  status: "pending",
+                  sentDate: new Date().toISOString().split("T")[0],
+                };
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap",
-          marginBottom: 20,
-        }}
-      >
-        {selectedJob.skills.map((item) => (
-          <Tag color="blue" key={item}>
-            {item}
-          </Tag>
-        ))}
-      </div>
+                const oldRequests =
+                  JSON.parse(localStorage.getItem("requests")) || [];
 
-      <Title level={5}>Хэл</Title>
+                localStorage.setItem(
+                  "requests",
+                  JSON.stringify([...oldRequests, request])
+                );
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap",
-          marginBottom: 20,
-        }}
-      >
-        {selectedJob.languages.map((item) => (
-          <Tag color="green" key={item}>
-            {item}
-          </Tag>
-        ))}
-      </div>
-
-      <Divider />
-
-      <Title level={5}>
-        Өргөдлийн захидал
-      </Title>
-
-<TextArea
-  rows={4}
-  value={coverLetter}
-  onChange={(e) => setCoverLetter(e.target.value)}
-  placeholder="Яагаад энэ дадлагад тохирох талаараа бичнэ үү..."
-/>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 12,
-          marginTop: 24,
-        }}
-      >
-        <Button onClick={() => setOpen(false)}>
-          Хаах
-        </Button>
-
-<Button
-  type="primary"
-  onClick={() => {
-    const request = {
-      title: selectedJob.title,
-      company: selectedJob.company,
-      description: coverLetter,
-      status: "pending",
-      sentDate: new Date().toISOString().split("T")[0],
-    };
-
-    const oldRequests =
-      JSON.parse(localStorage.getItem("requests")) || [];
-
-    localStorage.setItem(
-      "requests",
-      JSON.stringify([...oldRequests, request])
-    );
-
-    setOpen(false);
-    router.push("/pages/student/request");
-  }}
->
-  Хүсэлт илгээх
-</Button>
-      </div>
-    </>
-  )}
-</Modal>
+                setOpen(false);
+                router.push("/pages/student/request");
+              }}
+            >
+              Хүсэлт илгээх
+            </Button>
+                  </div>
+                </>
+              )}
+      </Modal>
     </section>
   );
 }

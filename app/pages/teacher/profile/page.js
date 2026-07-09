@@ -28,11 +28,11 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
 
 const [profile, setProfile] = useState({
-  fullName: "Батболдын Тэмүүлэн",
-  major: "Програм хангамж",
-  phone: "99112233",
-  email: "temuulen@example.mn",
-  bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
+  fullName: "Бат",
+  major: "IT",
+  phone: "99999999",
+  email: "bat@example.mn",
+  id: "F.IT3",
 
 });
 

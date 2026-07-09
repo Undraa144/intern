@@ -15,6 +15,8 @@ import {
   Col,
   Typography,
   Divider ,
+  Rate,
+  Space,
 } from "antd";
 
 import {
@@ -43,6 +45,11 @@ const [coverLetter, setCoverLetter] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
+const [reviews, setReviews] = useState([]);
+const [reviewOpen, setReviewOpen] = useState(false);
+const[ name, setName] =useState("")
+const [rate, setRate] = useState(0);
+const [comment, setComment] = useState("");
 
   const handleApply = (job) => {
     setSelectedJob(job);
@@ -55,7 +62,7 @@ const [coverLetter, setCoverLetter] = useState("");
 const [profile, setProfile] = useState({
   companyName: "ДатаТех Солюшнс",
   industry: "Мэдээллийн технологи",
-  rating: 4.6,
+  rate: 5,
   website: "datatech.mn",
   address: "Сүхбаатар дүүрэг, 1-р хороо",
   description:
@@ -87,6 +94,14 @@ const job = {
     "English",
   ],
 };
+
+useEffect(() => {
+  const savedReviews =
+    JSON.parse(localStorage.getItem("companyReviews")) || [];
+
+  setReviews(savedReviews);
+}, []);
+
 useEffect(() => {
   const savedProfile =
     localStorage.getItem("studentProfile");
@@ -97,7 +112,7 @@ useEffect(() => {
     setProfile({
   companyName: data.companyName || "ДатаТех Солюшнс",
   industry: data.industry || "Мэдээллийн технологи",
-  rating: data.rating || 4.6,
+  rate: data.rate || 5,
   website: data.website || "datatech.mn",
   address: data.address || "",
   description: data.description ||"Бид санхүү, банкны салбарт зориулсан програм хангамжийн шийдэл нийлүүлдэг.",
@@ -150,11 +165,17 @@ const handleSave = () => {
                 {profile.industry}
                 </Text>
 
-                <div className={styles.rating}>
-                <StarFilled  style={{color:"#f0bc00"}}/> {profile.rating} үнэлгээ
+                <div className={styles.rate}>
+                <StarFilled  style={{color:"#f0bc00"}}/> {profile.rate} үнэлгээ
                 </div>
             </div>
             </div>
+            <Button
+              className={styles.button}
+              onClick={() => setReviewOpen(true)}
+            >
+              Үнэлгээ өгөх
+            </Button>
         </Card>
 
         <Card className={styles.infoCard}>
@@ -208,217 +229,99 @@ const handleSave = () => {
                 Баталгаажсан байгууллага
             </Tag>
             )}
+            
 
-            <Button type="primary" className={styles.button}
-            onClick={() => handleApply(job)}
-            >       
-                Хүсэлт илгээх
-            </Button>
         </Card>
 
         <Modal
-          open={open}
-          footer={null}
-          onCancel={() => setOpen(false)}
-          width={800}
-          title={null}
-        >
-          {selectedJob && (
-            <>
-              <Title level={3}>
-                {selectedJob.title}
-              </Title>
-        
-              <Text type="secondary">
-                {selectedJob.company}
-              </Text>
-        
-              <Card
-                style={{
-                  marginTop: 20,
-                  marginBottom: 20,
-                  background: "#f7f9fc",
-                }}
-              >
-                <Row gutter={[24, 24]}>
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <EnvironmentOutlined /> Байршил
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.location}
-                    </Text>
-                  </Col>
-        
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <ClockCircleOutlined /> Цаг
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.duration}
-                    </Text>
-                  </Col>
-        
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <DollarOutlined /> Цалин
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.salary}
-                    </Text>
-                  </Col>
-        
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <BookOutlined /> GPA
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.gpa}
-                    </Text>
-                  </Col>
-        
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <TeamOutlined /> Орон тоо
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.vacancies}
-                    </Text>
-                  </Col>
-        
-                  <Col span={8}>
-                    <Text type="secondary">
-                      <CalendarOutlined /> Эцсийн хугацаа
-                    </Text>
-                    <br />
-                    <Text strong>
-                      {selectedJob.deadline}
-                    </Text>
-                  </Col>
-                </Row>
-              </Card>
-        
-              <Title level={5}>Тайлбар</Title>
-        
-              <Text>
-                {selectedJob.description}
-              </Text>
-        
-              <Divider />
-        
-              <Title level={5}>
-                Шаардлагатай мэргэжил
-              </Title>
-        
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginBottom: 20,
-                }}
-              >
-                {selectedJob.majors.map((item) => (
-                  <Tag key={item}>
-                    {item}
-                  </Tag>
-                ))}
-              </div>
-        
-              <Title level={5}>
-                Шаардлагатай чадвар
-              </Title>
-        
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginBottom: 20,
-                }}
-              >
-                {selectedJob.skills.map((item) => (
-                  <Tag color="blue" key={item}>
-                    {item}
-                  </Tag>
-                ))}
-              </div>
-        
-              <Title level={5}>Хэл</Title>
-        
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginBottom: 20,
-                }}
-              >
-                {selectedJob.languages.map((item) => (
-                  <Tag color="green" key={item}>
-                    {item}
-                  </Tag>
-                ))}
-              </div>
-        
-              <Divider />
-        
-              <Title level={5}>
-                Өргөдлийн захидал
-              </Title>
-        
-        <TextArea
-          rows={4}
-          value={coverLetter}
-          onChange={(e) => setCoverLetter(e.target.value)}
-          placeholder="Яагаад энэ дадлагад тохирох талаараа бичнэ үү..."
-        />
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 12,
-                  marginTop: 24,
-                }}
-              >
-                <Button onClick={() => setOpen(false)}>
-                  Хаах
-                </Button>
-        
-        <Button
-          type="primary"
-          onClick={() => {
-            const request = {
-              title: selectedJob.title,
-              company: selectedJob.company,
-              description: coverLetter,
-              status: "pending",
-              sentDate: new Date().toISOString().split("T")[0],
+          title="Байгууллагад үнэлгээ өгөх"
+          open={reviewOpen}
+          onCancel={() => setReviewOpen(false)}
+          onOk={() => {
+            const review = {
+              rate,
+              name,
+              comment,
+              date: new Date().toLocaleDateString(),
             };
-        
-            const oldRequests =
-              JSON.parse(localStorage.getItem("requests")) || [];
-        
+
+            const oldReviews =
+              JSON.parse(localStorage.getItem("companyReviews")) || [];
+
+            const updatedReviews = [...oldReviews, review];
+
             localStorage.setItem(
-              "requests",
-              JSON.stringify([...oldRequests, request])
+              "companyReviews",
+              JSON.stringify(updatedReviews)
             );
-        
-            setOpen(false);
-            router.push("/pages/student/request");
+
+            setReviews(updatedReviews);
+
+            setReviewOpen(false);
+            setRate(0);
+            setName("");
+            setComment("");
           }}
+          okText="Хадгалах"
+          cancelText="Болих"
         >
-          Хүсэлт илгээх
-        </Button>
-              </div>
-            </>
-          )}
+          <p>Үнэлгээ</p>
+
+          <Rate
+            value={rate}
+            onChange={(value) => setRate(value)}
+          />
+
+          <div style={{ marginTop: 20 }}>
+            <TextArea
+            rows={1}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Хүсвэл нэрээ бичнэ үү..."
+              />
+            <TextArea
+              rows={4}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Сэтгэгдлээ бичнэ үү..."
+            />
+          </div>
         </Modal>
+        <Card
+          title="Үнэлгээ, сэтгэгдэл"
+          style={{ marginTop: 30 }}
+        >
+          {reviews.length === 0 ? (
+            <Text type="secondary">
+              Одоогоор сэтгэгдэл байхгүй.
+            </Text>
+          ) : (
+            reviews.map((item, index) => (
+              <Card
+                key={index}
+                size="small"
+                style={{ marginBottom: 15 }}
+              >
+                <div style={{ marginTop: 10 }}>
+                  {item.name}
+                </div>
+
+                <Rate disabled value={item.rate} />
+
+                <div style={{ marginTop: 10 }}>
+                  {item.comment}
+                </div>
+
+                <Text
+                  type="secondary"
+                  style={{ display: "block", marginTop: 8 }}
+                >
+                  {item.date}
+                </Text>
+              </Card>
+            ))
+          )}
+        </Card>
 
         </div>
 

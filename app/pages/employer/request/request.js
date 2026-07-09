@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link"
 import { useState } from "react";
 import { Button, Tag, Card } from "antd";
 import {
@@ -152,9 +153,12 @@ export default function Request() {
             </div>
 
             <div className={styles.actions}>
+            
+            <Link href="/pages/employer/student">
             <Button>
                 Дэлгэрэнгүй
             </Button>
+            </Link>
 
             {item.status === "pending" && (
                 <>
