@@ -165,7 +165,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   icon={<EditOutlined />}
                   onClick={() => setIsEditing(true)}
                 >
-                  Засах
+                  Заах
                 </Button>
               )}
             </div>

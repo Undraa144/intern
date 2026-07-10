@@ -3,29 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Tabs } from 'antd';
-import { Form, Input, Button, Checkbox, Select } from "antd";
+import { Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./signup.module.scss";
-import { responsiveArray } from "antd/es/_util/responsiveObserver";
+
 
 export default function SignUp() {
   const [form] = Form.useForm();
   const router = useRouter();
-  
-const onFinish = async (values, role) => {
-    if (role === "student") {
-      router.push("/pages/student/home");
-    }
 
-    if (role === "employer") {
-      router.push("/pages/employer/home");
-    }
 
-    if (role === "teacher") {
-      router.push("/pages/teacher/home");
-    }
-  };
-  /*const API_BASE = process.env.BASE || "http://localhost:8088";
+  const API_BASE = process.env.BASE || "http://localhost:8088";
 
   const onFinish = async (values, role) => {
     if (role === "student") {
@@ -133,7 +121,9 @@ const onFinish = async (values, role) => {
           alert("Амжилттай бүртгэгдлээ");
           router.push("/pages/teacher/home");
         } else {
-          alert(data.message || "Бүртгэл амжилтгүй.");
+            if (data == null) {
+                alert(data.message+" Бүртгэл амжилтгүй.")
+            }
         }
       } catch (error) {
         console.error(error);
@@ -141,7 +131,7 @@ const onFinish = async (values, role) => {
       }
 
     }
-  };*/
+  };
 
   const items = [
     {
@@ -265,8 +255,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                I&apos;ve read and agree with your{" "}
+                  <Link href="/">Terms of Services</Link>
               </Checkbox>
             </Form.Item>
 
@@ -391,8 +381,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                I&apos;ve read and agree with your{" "}
+                <Link href="/">Terms of Services</Link>
               </Checkbox>
             </Form.Item>
 
@@ -529,8 +519,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                I&apos;ve read and agree with your{" "}
+                <Link href="/">Terms of Services</Link>
               </Checkbox>
             </Form.Item>
 
