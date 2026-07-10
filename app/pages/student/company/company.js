@@ -14,21 +14,13 @@ import {
   Row,
   Col,
   Typography,
-  Divider ,
   Rate,
-  Space,
 } from "antd";
 
 import {
   BankOutlined,
   GlobalOutlined,
   StarFilled ,
-  EnvironmentOutlined ,
-  ClockCircleOutlined ,
-  DollarOutlined ,
-  BookOutlined ,
-  TeamOutlined ,
-  CalendarOutlined ,
 } from "@ant-design/icons";
 
 import styles from "./company.module.scss"
@@ -41,9 +33,6 @@ export default function Profile() {
 
 const router = useRouter();
 
-const [coverLetter, setCoverLetter] = useState("");
-  const [open, setOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
 
 const [reviews, setReviews] = useState([]);
 const [reviewOpen, setReviewOpen] = useState(false);
@@ -121,6 +110,13 @@ useEffect(() => {
   }
 }, []);
 
+const averageRate =
+reviews.length > 0
+? (
+reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
+).toFixed(1)
+: 0;
+
 const handleSave = () => {
   localStorage.setItem(
     "studentProfile",
@@ -166,7 +162,11 @@ const handleSave = () => {
                 </Text>
 
                 <div className={styles.rate}>
-                <StarFilled  style={{color:"#f0bc00"}}/> {profile.rate} үнэлгээ
+                {reviews.length > 0 && (
+                                <Tag color="gold" style={{ marginLeft: 10 }}>
+                                Үнэлгээ: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                                </Tag>
+                            )}               
                 </div>
             </div>
             </div>
@@ -288,7 +288,16 @@ const handleSave = () => {
           </div>
         </Modal>
         <Card
-          title="Үнэлгээ, сэтгэгдэл"
+          title={
+            <span>
+            Үнэлгээ, сэтгэгдэл{" "}
+            {reviews.length > 0 && (
+                <Tag color="gold" style={{ marginLeft: 10 }}>
+                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                </Tag>
+            )}
+            </span>
+          }
           style={{ marginTop: 30 }}
         >
           {reviews.length === 0 ? (

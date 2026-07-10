@@ -22,7 +22,9 @@ import {
   EditOutlined,
   MailOutlined,
   PhoneOutlined,
+  UserOutlined,
   FileTextOutlined,
+  StarFilled,
 } from "@ant-design/icons";
 
 import styles from "./page.module.scss";
@@ -38,8 +40,7 @@ const [reviews, setReviews] = useState([]);
 const [reviewOpen, setReviewOpen] = useState(false);
 const [rate, setRate] = useState(0);
 const [comment, setComment] = useState("");
-
-  const [isEditing, setIsEditing] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
 
 const [profile, setProfile] = useState({
   fullName: "Батболдын Тэмүүлэн",
@@ -108,6 +109,12 @@ useEffect(() => {
   setReviews(savedReviews);
 }, []);
 
+const averageRate =
+reviews.length > 0
+? (
+reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
+).toFixed(1)
+: 0;
 
 
   return (
@@ -155,6 +162,19 @@ useEffect(() => {
               <p>
                 <FileTextOutlined />
                 Resume.pdf
+              </p>
+            </div>
+              <div className={styles.contact} style={{ marginTop: 16 }}>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>
+                Хариуцсан багш
+              </Text>
+
+              <p>
+                <UserOutlined /> {profile.teacherName || "Бат"}
+              </p>
+
+              <p>
+                <PhoneOutlined /> {profile.teacherPhone || "99887766"}
               </p>
             </div>
           </Card>
@@ -408,34 +428,38 @@ useEffect(() => {
             />
           </div>
         </Modal>
-
-      <Card title="Үнэлгээ, сэтгэгдэл" style={{ marginTop: 30 }}>
+        
+        <Card
+        title={
+            <span>
+            Үнэлгээ, сэтгэгдэл{" "}
+            {reviews.length > 0 && (
+                <Tag color="gold" style={{ marginLeft: 10 }}>
+                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                </Tag>
+            )}
+            </span>
+        }
+        style={{ marginTop: 30 }}
+        >
         {reviews.length === 0 ? (
-          <Text type="secondary">
-            Одоогоор сэтгэгдэл байхгүй.
-          </Text>
+            <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
         ) : (
-          reviews.map((item, index) => (
+            reviews.map((item, index) => (
             <Card key={index} size="small" style={{ marginBottom: 15 }}>
-              <Tag color={item.from === "Багш" ? "blue" : "green"}>
+                <Tag color={item.from === "Багш" ? "blue" : "green"}>
                 {item.from}
-              </Tag>
-
-              <div style={{ margin: "10px 0" }}>
+                </Tag>
+                <div style={{ margin: "10px 0" }}>
                 <Rate disabled value={item.rate} />
-              </div>
-
-              <Text>{item.comment}</Text>
-
-              <br />
-
-              <Text type="secondary">
-                {item.date}
-              </Text>
+                </div>
+                <Text>{item.comment}</Text>
+                <br />
+                <Text type="secondary">{item.date}</Text>
             </Card>
-          ))
+            ))
         )}
-      </Card>
+        </Card>
       </Content>
     </MainLayout>
   );

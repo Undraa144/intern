@@ -12,7 +12,7 @@ import {
   Row,
   Col,
   Typography,
-
+  Rate,
 } from "antd";
 
 import {
@@ -28,12 +28,13 @@ const { Title, Text } = Typography;
 
 export default function Profile() {
 
-  const [isEditing, setIsEditing] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
+const [reviews, setReviews] = useState([]);
 
 const [profile, setProfile] = useState({
   companyName: "ДатаТех Солюшнс",
   industry: "Мэдээллийн технологи",
-  rating: 4.6,
+  rate: 4.6,
   website: "datatech.mn",
   address: "Сүхбаатар дүүрэг, 1-р хороо",
   description:
@@ -42,36 +43,41 @@ const [profile, setProfile] = useState({
 });
 
 useEffect(() => {
-  const savedProfile =
-    localStorage.getItem("studentProfile");
-
+  const savedProfile = localStorage.getItem("studentProfile");
   if (savedProfile) {
     const data = JSON.parse(savedProfile);
-
     setProfile({
-  companyName: data.companyName || "ДатаТех Солюшнс",
-  industry: data.industry || "Мэдээллийн технологи",
-  rating: data.rating || 4.6,
-  website: data.website || "datatech.mn",
-  address: data.address || "",
-  description: data.description || "",
-  verified: data.verified ?? true,
-});
+      companyName: data.companyName || "ДатаТех Солюшнс",
+      industry: data.industry || "Мэдээллийн технологи",
+      rate: data.rate || 4.6,
+      website: data.website || "datatech.mn",
+      address: data.address || "",
+      description: data.description || "",
+      verified: data.verified ?? true,
+    });
+  }
+
+  const savedReviews = localStorage.getItem("companyReviews");
+  if (savedReviews) {
+    setReviews(JSON.parse(savedReviews));
   }
 }, []);
 
+const averageRate =
+reviews.length > 0
+? (
+reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
+).toFixed(1)
+: 0;
+
 const handleSave = () => {
   localStorage.setItem(
-    "studentProfile",
+    "companyProfile",
     JSON.stringify(profile)
   );
 
   setIsEditing(false);
 };
-
-  const onClick = (e) => {
-    setCurrent(e.key);
-  };
 
 
   return (
@@ -83,16 +89,6 @@ const handleSave = () => {
       <h1>Байгууллагын профайл</h1>
     </div>
 
-    <Button
-      type="primary"
-      onClick={() =>
-        isEditing
-          ? handleSave()
-          : setIsEditing(true)
-      }
-    >
-      {isEditing ? "Хадгалах" : "Засварлах"}
-    </Button>
   </div>
 
   <Card className={styles.companyCard}>
@@ -104,6 +100,16 @@ const handleSave = () => {
           .join("")
           .slice(0, 2)}
       </Avatar>
+    <Button className={styles.btn}
+      type="primary"
+      onClick={() =>
+        isEditing
+          ? handleSave()
+          : setIsEditing(true)
+      }
+    >
+      {isEditing ? "Хадгалах" : "Засварлах"}
+    </Button>
 
       <div>
         <Title level={3}>
@@ -114,8 +120,12 @@ const handleSave = () => {
           {profile.industry}
         </Text>
 
-        <div className={styles.rating}>
-          <StarFilled  style={{color:"#f0bc00"}}/> {profile.rating} үнэлгээ
+        <div className={styles.rate}>
+                {reviews.length > 0 && (
+                                <Tag color="gold" style={{ marginLeft: 10 }}>
+                                Үнэлгээ: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                                </Tag>
+                            )}    
         </div>
       </div>
     </div>
@@ -184,6 +194,50 @@ const handleSave = () => {
       </Tag>
     )}
   </Card>
+          <Card
+          title={
+            <span>
+            Үнэлгээ, сэтгэгдэл{" "}
+            {reviews.length > 0 && (
+                <Tag color="gold" style={{ marginLeft: 10 }}>
+                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                </Tag>
+            )}
+            </span>
+          }
+          style={{ marginTop: 30 }}
+        >
+          {reviews.length === 0 ? (
+            <Text type="secondary">
+              Одоогоор сэтгэгдэл байхгүй.
+            </Text>
+          ) : (
+            reviews.map((item, index) => (
+              <Card
+                key={index}
+                size="small"
+                style={{ marginBottom: 15 }}
+              >
+                <div style={{ marginTop: 10 }}>
+                  {item.name}
+                </div>
+
+                <Rate disabled value={item.rate} />
+
+                <div style={{ marginTop: 10 }}>
+                  {item.comment}
+                </div>
+
+                <Text
+                  type="secondary"
+                  style={{ display: "block", marginTop: 8 }}
+                >
+                  {item.date}
+                </Text>
+              </Card>
+            ))
+          )}
+        </Card>
 </div>
 
     </Layout>

@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import {
   Button,
@@ -179,6 +179,11 @@ export default function Student() {
           <p>
             <strong>Имэйл:</strong> {student.email}
           </p>
+          <Link href="/pages/teacher/studentprofile">
+            <Button>
+                Дэлгэрэнгүй
+            </Button>
+          </Link>
 
 
           <Space>
@@ -249,34 +254,6 @@ export default function Student() {
           />
         </div>
       </Modal>
-
-      <Card title="Үнэлгээ, сэтгэгдэл" style={{ marginTop: 30 }}>
-        {reviews.length === 0 ? (
-          <Text type="secondary">
-            Одоогоор сэтгэгдэл байхгүй.
-          </Text>
-        ) : (
-          reviews.map((item, index) => (
-            <Card key={index} size="small" style={{ marginBottom: 15 }}>
-              <Tag color={item.from === "Багш" ? "blue" : "green"}>
-                {item.from}
-              </Tag>
-
-              <div style={{ margin: "10px 0" }}>
-                <Rate disabled value={item.rate} />
-              </div>
-
-              <Text>{item.comment}</Text>
-
-              <br />
-
-              <Text type="secondary">
-                {item.date}
-              </Text>
-            </Card>
-          ))
-        )}
-      </Card>
 
       <Modal
         open={open}
