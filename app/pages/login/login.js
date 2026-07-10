@@ -11,7 +11,7 @@ export default function Login() {
   const [form] = Form.useForm();
     const router = useRouter();
 
-const onFinish = async (values, role) => {
+/*const onFinish = async (values, role) => {
     if (role === "student") {
       router.push("/pages/student/home");
     }
@@ -23,9 +23,9 @@ const onFinish = async (values, role) => {
     if (role === "teacher") {
       router.push("/pages/teacher/home");
     }
-  };
+  };*/
 
- /* const API_BASE = process.env.BASE || "http://localhost:8088"
+  const API_BASE = process.env.BASE || "http://localhost:8088"
 
   const onFinish = async (values) => {
     try {
@@ -66,7 +66,7 @@ const onFinish = async (values, role) => {
       alert("Сервертэй холбогдож чадсангүй.");
     }
   };
-  */
+  
 
 
   const items = [
@@ -120,10 +120,22 @@ const onFinish = async (values, role) => {
             >
               <Input.Password placeholder="Password" />
             </Form.Item>
+
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Remember me"
+                          )
+                        ),
+                },
+              ]}
             >
               <Checkbox>
                 Remember me
@@ -195,7 +207,18 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Remember me"
+                          )
+                        ),
+                },
+              ]}
             >
               <Checkbox>
                 Remember me
@@ -267,7 +290,18 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Remember me"
+                          )
+                        ),
+                },
+              ]}
             >
               <Checkbox>
                 Remember me
