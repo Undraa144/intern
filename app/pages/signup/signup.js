@@ -16,6 +16,7 @@ export default function SignUp() {
   const API_BASE = process.env.BASE || "http://localhost:8088";
 
   const onFinish = async (values, role) => {
+    console.log("ыйбөйбыхбаөха")
     if (role === "student") {
       try {
         const response = await fetch(

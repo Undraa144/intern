@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {Tabs} from 'antd';
-import { Form, Input, Button, Checkbox, Select } from "antd";
+import { Tabs, Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./login.module.scss";
 
 export default function Login() {
-  const [form] = Form.useForm();
-    const router = useRouter();
+  const router = useRouter();
 
 /*const onFinish = async (values, role) => {
     if (role === "student") {
@@ -24,14 +22,11 @@ export default function Login() {
       router.push("/pages/teacher/home");
     }
   };*/
-
-  const API_BASE = process.env.BASE || "http://localhost:8088"
+  const API_BASE = process.env.BASE || "http://localhost:8088";
 
   const onFinish = async (values) => {
     try {
-      const response = await fetch(
-        `${API_BASE}/api/auth/login`, 
-        {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,8 +37,20 @@ export default function Login() {
         }),
       });
 
-      const data = await response.json();
-      console.log(data);
+        const token = localStorage.getItem("token");
+
+        const userData = await fetch(`${API_BASE}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data1 = await userData.json();
+        console.log(data1)
+
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         alert(data.message || "Login failed");
@@ -54,12 +61,15 @@ export default function Login() {
         localStorage.setItem("token", data.token);
       }
 
-      if (data.role === "STUDENT") {
+      if (data1.role === "STUDENT") {
         router.push("/pages/student/home");
-      } else if (data.role === "TEACHER") {
+      } else if (data1.role === "TEACHER") {
         router.push("/pages/teacher/home");
-      } else if (data.role === "COMPANY") {
+      } else if (data1.role === "COMPANY") {
         router.push("/pages/employer/home");
+      }
+      else{
+        alert("хэрэглэгчийн role олдсонгүй")
       }
     } catch (error) {
       console.error(error);
@@ -87,7 +97,6 @@ export default function Login() {
           </div>
 
           <Form
-            form={form}
             layout="vertical"
             onFinish={(values) => onFinish(values, "student")}
 
@@ -171,7 +180,6 @@ export default function Login() {
           </div>
 
           <Form
-            form={form}
             layout="vertical"
             onFinish={(values) => onFinish(values, "employer")}
           >
@@ -254,7 +262,6 @@ export default function Login() {
           </div>
 
           <Form
-            form={form}
             layout="vertical"
             onFinish={(values) => onFinish(values, "teacher")}
           >
