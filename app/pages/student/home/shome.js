@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link"
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
@@ -30,6 +29,11 @@ import {
   toStudentJob,
   withStudentJobDetail,
 } from "../../../utils/student-job.mjs";
+import {
+  createApplicationPayload,
+  getStudentIdFromResponse,
+} from "../../../utils/application-payload.mjs";
+import { parseResponseBody } from "../../../utils/response-body.mjs";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -37,7 +41,6 @@ const { Title, Text } = Typography;
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
 export default function SHome({ searchText = "" }) {
-  const router = useRouter();
   const [coverLetter, setCoverLetter] = useState("");
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +49,7 @@ export default function SHome({ searchText = "" }) {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [hasDetailLoadError, setHasDetailLoadError] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   const detailRequestIdRef = useRef(0);
 
   useEffect(() => {
@@ -106,6 +110,69 @@ export default function SHome({ searchText = "" }) {
       if (detailRequestIdRef.current === requestId) {
         setIsDetailLoading(false);
       }
+    }
+  };
+
+  const handleApplicationSubmit = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Хүсэлт илгээхийн тулд эхлээд нэвтэрнэ үү.");
+      return;
+    }
+
+    if (!selectedJob) {
+      alert("Сонгосон зар олдсонгүй.");
+      return;
+    }
+
+    setIsApplying(true);
+
+    try {
+      const idResponse = await fetch(`${API_BASE}/api/auth/myId`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const idData = await parseResponseBody(idResponse);
+
+      if (!idResponse.ok) {
+        alert(idData?.message || "Оюутны ID авч чадсангүй.");
+        return;
+      }
+
+      const studentId = getStudentIdFromResponse(idData);
+      const payload = createApplicationPayload({
+        coverLetter,
+        studentId,
+      });
+      const applicationResponse = await fetch(
+        `${API_BASE}/api/applications/${selectedJob.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      const applicationData = await parseResponseBody(applicationResponse);
+
+      if (!applicationResponse.ok) {
+        alert(applicationData?.message || "Хүсэлт илгээж чадсангүй.");
+        return;
+      }
+
+      alert("Хүсэлт амжилттай илгээгдлээ.");
+      setCoverLetter("");
+      setOpen(false);
+    } catch (error) {
+      console.error("Application submission failed:", error);
+      alert("Хүсэлт илгээх үед алдаа гарлаа.");
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -363,26 +430,9 @@ export default function SHome({ searchText = "" }) {
 
             <Button
               type="primary"
-              onClick={() => {
-                const request = {
-                  title: selectedJob.title,
-                  company: selectedJob.company,
-                  description: coverLetter,
-                  status: "pending",
-                  sentDate: new Date().toISOString().split("T")[0],
-                };
-
-                const oldRequests =
-                  JSON.parse(localStorage.getItem("requests")) || [];
-
-                localStorage.setItem(
-                  "requests",
-                  JSON.stringify([...oldRequests, request])
-                );
-
-                setOpen(false);
-                router.push("/pages/student/request");
-              }}
+              onClick={handleApplicationSubmit}
+              loading={isApplying}
+              disabled={isApplying}
             >
               Хүсэлт илгээх
             </Button>

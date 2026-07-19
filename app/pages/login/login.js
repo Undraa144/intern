@@ -136,18 +136,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -218,18 +206,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -300,18 +276,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
