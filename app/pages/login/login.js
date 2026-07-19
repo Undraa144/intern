@@ -36,10 +36,13 @@ export default function Login() {
           password: values.password,
         }),
       });
+      const result = await response.json();
 
-        const token = localStorage.getItem("token");
+      console.log(result.token);
+      localStorage.setItem("token", result.token);
+      const token = localStorage.getItem("token");
 
-        const userData = await fetch(`${API_BASE}/api/users/me`, {
+      const userData = await fetch(`${API_BASE}/api/users/me`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
