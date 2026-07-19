@@ -7,17 +7,18 @@ import { Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./signup.module.scss";
 
-
 export default function SignUp() {
   const [form] = Form.useForm();
+    const [employerForm] = Form.useForm();
   const router = useRouter();
 
-
-  const API_BASE = process.env.BASE || "http://localhost:8088";
+    const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
   const onFinish = async (values, role) => {
     console.log("ыйбөйбыхбаөха")
     if (role === "student") {
+        console.log("энэ тата3");
       try {
         const response = await fetch(
           `${API_BASE}/api/auth/register/student`,
@@ -34,12 +35,12 @@ export default function SignUp() {
                 isActive: true,
               },
               firstName: values.fullName,
-              lastName: values.username,
+              lastName: values,
             }),
           }
         );
-
         const data = await response.json();
+
 
         if (response.ok) {
           alert("Амжилттай бүртгэгдлээ");
@@ -70,18 +71,19 @@ export default function SignUp() {
                 isActive: true
               },
               organizationName: values.fullName,
-              industry: values.username,
+              industry: values.industry,
             }),
           }
         );
 
-        const data = await response.json();
 
+        const data = await response.json();
+            console.log(data)
         if (response.ok) {
           alert("Амжилттай бүртгэгдлээ");
           router.push("/pages/employer/home");
         } else {
-          alert(data.message || "Бүртгэл амжилтгүй.");
+          alert("Бүртгэл амжилтгүй.");
         }
       } catch (error) {
         console.error(error);
@@ -92,7 +94,9 @@ export default function SignUp() {
 
     if (role === "teacher") {
       try {
+          console.log("энэ тата4");
         const response = await fetch(
+
           `${API_BASE}/api/auth/register/teacher`,
           {
             method: "POST",
@@ -123,7 +127,7 @@ export default function SignUp() {
           router.push("/pages/teacher/home");
         } else {
             if (data == null) {
-                alert(data.message+" Бүртгэл амжилтгүй.")
+                alert(" Бүртгэл амжилтгүй.")
             }
         }
       } catch (error) {
@@ -142,9 +146,9 @@ export default function SignUp() {
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Хаяг үүсгэх.</h2>
               <p>
-                Already have account?{" "}
+                Хаял аль хэдийн үүссэн байна{" "}
                 <Link href="/pages/login">Log In</Link>
               </p>
             </div>
@@ -154,8 +158,7 @@ export default function SignUp() {
           <Form
             form={form}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "student")}
-          >
+            onFinish={(values) => onFinish(values, "student")}>
             <div className={styles.row}>
               <Form.Item
                 name="fullName"
@@ -267,7 +270,7 @@ export default function SignUp() {
               block
               className={styles.submitBtn}
             >
-              Create Account
+              Хаяг үүсгэх
             </Button>
           </Form>
         </div>
@@ -280,9 +283,9 @@ export default function SignUp() {
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Хаяг үүсгэх.</h2>
               <p>
-                Already have account?{" "}
+                Хаял аль хэдийн үүссэн байна{" "}
                 <Link href="/pages/login">Log In</Link>
               </p>
             </div>
@@ -290,10 +293,15 @@ export default function SignUp() {
           </div>
 
           <Form
-            form={form}
+            form={employerForm}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "employer")}
+
+            onFinish={(values) => {
+                console.log("энэ дээр дарав");
+                onFinish(values, "employer");
+            }}
           >
+
             <div className={styles.row}>
               <Form.Item
                 name="fullName"
@@ -301,11 +309,11 @@ export default function SignUp() {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your full name!",
+                    message: "Байгууллагын нэрийг оруулна уу",
                   },
                 ]}
               >
-                <Input placeholder="Company Name" />
+                <Input placeholder="Байгууллагын нэр" />
               </Form.Item>
 
             </div>
@@ -315,27 +323,39 @@ export default function SignUp() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имайл хаягаа оруулна уу",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Имайл хаяг алдаатай байна",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имайл хаяг" />
             </Form.Item>
+              <Form.Item
+                  name="industry"
+                  rules={[
+                      {
+                          required: true,
+                          whitespace: true,
+                          message: "Салбараа оруулна уу",
+                      },
+                  ]}
+              >
+                  <Input placeholder="Салбар" />
+              </Form.Item>
 
             <Form.Item
               name="password"
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үгээ шалгана уу",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -344,7 +364,7 @@ export default function SignUp() {
               rules={[
                 {
                   required: true,
-                  message: "Please confirm your password!",
+                  message: "Нууц үгээ шалгана уу",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -356,13 +376,13 @@ export default function SignUp() {
                     }
 
                     return Promise.reject(
-                      new Error("Passwords do not match!")
+                      new Error("Нууц үг таарахгүй байна!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="Confirm Password" />
+              <Input.Password placeholder="Нууц үгээ давтан оруулах" />
             </Form.Item>
 
             <Form.Item
@@ -382,19 +402,19 @@ export default function SignUp() {
               ]}
             >
               <Checkbox>
-                I&apos;ve read and agree with your{" "}
-                <Link href="/">Terms of Services</Link>
+                Би уншиж танилцсан{" "}
+                <Link href="/">Үйлчилгээний нөхцөл</Link>
               </Checkbox>
             </Form.Item>
 
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              className={styles.submitBtn}
-            >
-              Create Account
-            </Button>
+              <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  className={styles.submitBtn}
+              >
+                  Хаяг үүсгэх
+              </Button>
           </Form>
         </div>
       ),
@@ -406,10 +426,10 @@ export default function SignUp() {
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Хаяг үүсгэх</h2>
               <p>
-                Already have account?{" "}
-                <Link href="/pages/login">Log In</Link>
+                Бүртгэлтэй хаяг байгаа{" "}
+                <Link href="/pages/login">Бүртгүүлэх</Link>
               </p>
             </div>
 
@@ -520,7 +540,7 @@ export default function SignUp() {
               ]}
             >
               <Checkbox>
-                I&apos;ve read and agree with your{" "}
+                    I&apos;ve read and agree with your{" "}
                 <Link href="/">Terms of Services</Link>
               </Checkbox>
             </Form.Item>
@@ -531,7 +551,7 @@ export default function SignUp() {
               block
               className={styles.submitBtn}
             >
-              Create Account
+              Хаяг үүсгэх
             </Button>
           </Form>
         </div>
