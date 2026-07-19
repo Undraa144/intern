@@ -38,10 +38,10 @@ export default function Login() {
       });
       const result = await response.json();
 
-      console.log(result.token);
+      console.log(response.ok);
       localStorage.setItem("token", result.token);
-      const token = localStorage.getItem("token");
-
+      const token = result.token;
+      console.log("token", token);
       const userData = await fetch(`${API_BASE}/api/users/me`, {
           method: "GET",
           headers: {

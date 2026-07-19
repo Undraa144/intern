@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Modal,
@@ -26,156 +26,48 @@ import {
 } from "@ant-design/icons";
 
 import styles from "./shome.module.scss";
+import {
+  toStudentJob,
+  withStudentJobDetail,
+} from "../../../utils/student-job.mjs";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
-const jobs = [
-    {
-    company: "Instagram",
-    title: "Marketing",
-    image: "/company.jpeg",
-    color: "#ece9ff",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Unitel",
-    title: "IT engineer",
-    image: "/company.jpeg",
-    color: "#e9faf6",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "MSC",
-    title: "Design",
-    image: "/company.jpeg",
-    color: "#fff0e6",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Khan Bank",
-    title: "Finance",
-    image: "/company.jpeg",
-    color: "#fdf0f5",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Ub Даатгал ",
-    title: "Human Resource",
-    image: "/company.jpeg",
-    color: "#e8f6ff",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-
-  {
-    company: "DataTex Солюшнс",
-    title: "Data Analysis",
-    image: "/company.jpeg",
-    color: "#fff0f8",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-  {
-    company: "Google",
-    title: "Software Engineer ",
-    image: "/company.jpeg",
-    color: "#f3f6fb",
-    location: "Улаанбаатар",
-    duration: "30 цаг / 7 хоног",
-    salary: "1,200,000 ₮",
-    gpa: "3.00",
-    vacancies: "2",
-    deadline: "2026.08.01",
-    description:
-      "Frontend болон Backend хөгжүүлэлтийн төсөл дээр ажиллана.",
-    majors: ["Програм хангамж"],
-    skills: ["React", "Next.js", "Node.js"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Slack",
-    title: "Project Manager ",
-    image: "/company.jpeg",
-    color: "#fff3d9",
-    location: "Улаанбаатар",
-    duration: "30 цаг / 7 хоног",
-    salary: "1,200,000 ₮",
-    gpa: "3.00",
-    vacancies: "2",
-    deadline: "2026.08.01",
-    description:
-      "Frontend болон Backend хөгжүүлэлтийн төсөл дээр ажиллана.",
-    majors: ["Програм хангамж"],
-    skills: ["React", "Next.js", "Node.js"],
-    languages: ["Монгол", "Англи"],
-  },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
 export default function SHome({ searchText = "" }) {
-  
-const router = useRouter();
-const [coverLetter, setCoverLetter] = useState("");
+  const router = useRouter();
+  const [coverLetter, setCoverLetter] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [hasDetailLoadError, setHasDetailLoadError] = useState(false);
+  const detailRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/postings`);
+
+        if (!response.ok) {
+          throw new Error(`алдааа: ${response.status}`);
+        }
+
+        const postings = await response.json();
+        setJobs(Array.isArray(postings) ? postings.map(toStudentJob) : []);
+      } catch (error) {
+        console.error("Unable to load internship postings:", error);
+        setHasLoadError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadJobs();
+  }, []);
 
   const filteredJobs = jobs.filter(
     (job) =>
@@ -183,21 +75,51 @@ const [coverLetter, setCoverLetter] = useState("");
       job.company.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const handleApply = (job) => {
+  const handleApply = async (job) => {
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
+
     setSelectedJob(job);
     setOpen(true);
+    setIsDetailLoading(true);
+    setHasDetailLoadError(false);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/postings/${job.id}`);
+
+      if (!response.ok) {
+        throw new Error(`Unable to load posting detail: ${response.status}`);
+      }
+
+      const detail = await response.json();
+      setSelectedJob((currentJob) =>
+        currentJob?.id === job.id
+          ? withStudentJobDetail(currentJob, detail)
+          : currentJob
+      );
+    } catch (error) {
+      console.error("Unable to load internship posting detail:", error);
+      if (detailRequestIdRef.current === requestId) {
+        setHasDetailLoadError(true);
+      }
+    } finally {
+      if (detailRequestIdRef.current === requestId) {
+        setIsDetailLoading(false);
+      }
+    }
   };
+
 
   return (
     <section className={styles.main}>
       <h1 className={styles.title}>Санал болгох ажил</h1>
 
       <div className={styles.grid}>
-        {filteredJobs.map((job, index) => (
-          <div key={index} className={styles.card}>
+        {!isLoading && !hasLoadError && filteredJobs.map((job) => (
+          <div key={job.id} className={styles.card}>
             <div
               className={styles.top}
-              style={{ backgroundColor: job.color }}
+              style={{ backgroundColor: "#ece9ff" }}
             >
               <Image
                 src={job.image}
@@ -211,8 +133,8 @@ const [coverLetter, setCoverLetter] = useState("");
               <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
-                <span>Part Time</span>
-                <span>Internship</span>
+                {job.industry && <span>{job.industry}</span>}
+                {job.status && <span>{job.status}</span>}
               </div>
             </div>
 
@@ -228,7 +150,19 @@ const [coverLetter, setCoverLetter] = useState("");
         ))}
       </div>
 
-      {filteredJobs.length === 0 && (
+        {isLoading && (
+          <h3 className={styles.empty}>
+            Ажлын зар ачаалж байна...
+          </h3>
+        )}
+
+        {hasLoadError && (
+          <h3 className={styles.empty}>
+            Ажлын зарыг ачаалж чадсангүй
+          </h3>
+        )}
+
+        {!isLoading && !hasLoadError && filteredJobs.length === 0 && (
         <h3 className={styles.empty}>
           Илэрц олдсонгүй
         </h3>
@@ -239,17 +173,27 @@ const [coverLetter, setCoverLetter] = useState("");
         footer={null}
         onCancel={() => setOpen(false)}
         width={800}
-        title={null}
-      >
+        title={null}>
         {selectedJob && (
           <>
             <Title level={3}>
               {selectedJob.title}
+
             </Title>
 
             <Text type="secondary">
               {selectedJob.company}
             </Text>
+
+            {isDetailLoading && (
+              <Text type="secondary">Дэлгэрэнгүй мэдээлэл ачаалж байна...</Text>
+            )}
+
+            {hasDetailLoadError && (
+              <Text type="danger">
+                Дэлгэрэнгүй мэдээллийг ачаалж чадсангүй.
+              </Text>
+            )}
 
             <Card
               style={{
@@ -265,7 +209,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.location}
+                     {selectedJob.location || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -275,7 +219,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.duration}
+                     {selectedJob.duration || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -285,7 +229,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.salary}
+                       {selectedJob.salary || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -295,7 +239,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.gpa}
+                     {selectedJob.gpa || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -305,9 +249,10 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.vacancies}
+                     {selectedJob.vacancies || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
+
 
                 <Col span={8}>
                   <Text type="secondary">
@@ -315,7 +260,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.deadline}
+                     {selectedJob.deadline || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
               </Row>
@@ -324,7 +269,7 @@ const [coverLetter, setCoverLetter] = useState("");
             <Title level={5}>Тайлбар</Title>
 
             <Text>
-              {selectedJob.description}
+               {selectedJob.description || "Мэдээлэл байхгүй"}
             </Text>
 
             <Divider />
@@ -341,48 +286,56 @@ const [coverLetter, setCoverLetter] = useState("");
                 marginBottom: 20,
               }}
             >
-              {selectedJob.majors.map((item) => (
-                <Tag key={item}>
-                  {item}
-                </Tag>
-              ))}
+               {selectedJob.majors.length > 0 ? (
+                 selectedJob.majors.map((item) => (
+                   <Tag key={item}>
+                     {item}
+                   </Tag>
+                 ))
+               ) : (
+                 <Text type="secondary">Мэдээлэл байхгүй</Text>
+               )}
             </div>
 
-            <Title level={5}>
-              Шаардлагатай чадвар
-            </Title>
+             {selectedJob.skills.length > 0 && (
+               <>
+                 <Title level={5}>Шаардлагатай чадвар</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.skills.map((item) => (
+                     <Tag color="blue" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.skills.map((item) => (
-                <Tag color="blue" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
-
-            <Title level={5}>Хэл</Title>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.languages.map((item) => (
-                <Tag color="green" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
+             {selectedJob.languages.length > 0 && (
+               <>
+                 <Title level={5}>Хэл</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.languages.map((item) => (
+                     <Tag color="green" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
             <Divider />
 
