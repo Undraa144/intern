@@ -114,7 +114,14 @@ export default function SHome({ searchText = "" }) {
   };
 
   const handleApplicationSubmit = async () => {
-    const token = localStorage.getItem("token");
+    function getCookie(name) {
+      return document.cookie
+          .split("; ")
+          .find(row => row.startsWith(name + "="))
+          ?.split("=")[1];
+    }
+
+    const token = getCookie("token");
 
     if (!token) {
       alert("Хүсэлт илгээхийн тулд эхлээд нэвтэрнэ үү.");

@@ -62,7 +62,14 @@ export default function ProfilePage() {
   useEffect(message => {
     const loadProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
         const response = await fetch(`${BASE_API}/api/students/profile`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -93,7 +100,14 @@ export default function ProfilePage() {
     };
     const loadReview = async () =>{
       try {
-        const token = localStorage.getItem("token");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
         const response = await fetch(`${BASE_API}/api/evaluations/student`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -101,7 +115,7 @@ export default function ProfilePage() {
         if (!response.ok || !data) {
           alert("review хүсэлт алдааа гарлаа");
         }
-        setReviews(data);
+        //setReviews(data);
       }
       catch (e){
         alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
@@ -109,7 +123,14 @@ export default function ProfilePage() {
     }
     const loadAvgRate = async () =>{
       try {
-        const token = localStorage.getItem("token");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
         const response = fetch(`${BASE_API}/api/students/avg`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
@@ -141,7 +162,14 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      const token = localStorage.getItem("token");
+      function getCookie(name) {
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1];
+      }
+
+      const token = getCookie("token");
       await updateStudentProfile({
         baseApi: BASE_API,
         token,

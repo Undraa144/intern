@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs } from 'antd';
 import { Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./signup.module.scss";
 import { parseResponseBody } from "../../utils/response-body.mjs";
+import { getAuthRoleTabKey } from "../../utils/auth-role-tabs.mjs";
 
 export default function SignUp() {
   const [form] = Form.useForm();
     const [employerForm] = Form.useForm();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
 
     const API_BASE =
         process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
@@ -144,7 +147,7 @@ export default function SignUp() {
               <h2>Хаяг үүсгэх.</h2>
               <p>
                 Хаял аль хэдийн үүссэн байна{" "}
-                <Link href="/pages/login">Log In</Link>
+                <Link href="/pages/login?role=student">Log In</Link>
               </p>
             </div>
 
@@ -281,7 +284,7 @@ export default function SignUp() {
               <h2>Хаяг үүсгэх.</h2>
               <p>
                 Хаял аль хэдийн үүссэн байна{" "}
-                <Link href="/pages/login">Log In</Link>
+                <Link href="/pages/login?role=employer">Log In</Link>
               </p>
             </div>
 
@@ -436,7 +439,7 @@ export default function SignUp() {
               <h2>Хаяг үүсгэх</h2>
               <p>
                 Бүртгэлтэй хаяг байгаа{" "}
-                <Link href="/pages/login">Бүртгүүлэх</Link>
+                <Link href="/pages/login?role=teacher">Бүртгүүлэх</Link>
               </p>
             </div>
 
@@ -572,7 +575,7 @@ export default function SignUp() {
 
       <div className={styles.right}>
         <Tabs
-          defaultActiveKey="1"
+          defaultActiveKey={activeTabKey}
           centered
           items={items}
         />

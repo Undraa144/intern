@@ -31,7 +31,14 @@ export default function RequestPage() {
     //status тоог авах холболтыг функц
     const loadStatus = async () => {
       try {
-        const token = localStorage.getItem("token");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
 
         const response = await fetch(`${API_BASE}/api/applications/status`, {
           headers: {
@@ -50,7 +57,14 @@ export default function RequestPage() {
     //application авах холболт
     const loadApp = async () => {
       try {
-        const token = localStorage.getItem("token");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
         const response = await fetch(`${API_BASE}/api/applications`, {
           headers: {
             Authorization: `Bearer ${token}`,

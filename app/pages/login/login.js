@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./login.module.scss";
+import { getAuthRoleTabKey } from "../../utils/auth-role-tabs.mjs";
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
+    const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
   const onFinish = async (values) => {
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,7 +28,7 @@ export default function Login() {
       const result = await response.json();
 
       console.log(response.ok);
-      localStorage.setItem("token", result.token);
+      document.cookie = "token="+result.token+"; path=/";
       const token = result.token;
       console.log("token", token);
       const userData = await fetch(`${API_BASE}/api/users/me`, {
@@ -37,16 +42,10 @@ export default function Login() {
         const data1 = await userData.json();
         console.log(data1)
 
-      const data = await response.json().catch(() => ({}));
+
 
       if (!response.ok) {
         alert(data.message || "Login failed");
-        return;
-      }
-
-      const loginSucceeded = data.success;
-      if (!loginSucceeded) {
-        alert("Токен олдсонгүй.");
         return;
       }
 
@@ -82,7 +81,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                <Link href="/pages/signup?role=student">Sign Up</Link>
               </p>
             </div>
           </div>
@@ -150,7 +149,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                <Link href="/pages/signup?role=employer">Sign Up</Link>
               </p>
             </div>
 
@@ -220,7 +219,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have  any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                <Link href="/pages/signup?role=teacher">Sign Up</Link>
               </p>
             </div>
 
@@ -288,7 +287,7 @@ export default function Login() {
 
       <div className={styles.right}>
         <Tabs
-          defaultActiveKey="1"
+          defaultActiveKey={activeTabKey}
           centered
           items={items}
         />
