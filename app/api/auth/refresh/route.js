@@ -2,36 +2,32 @@ import { cookies } from "next/headers";
 
 const API_BASE = process.env.API_BASE || "http://localhost:8088";
 
-export async function POST(request) {
+export async function POST() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) {
+    return Response.json(
+      { error: "Unauthorized", message: "Нэвтрэх шаардлагатай." },
+      { status: 401 }
+    );
+  }
+
   try {
-    const response = await fetch(`${API_BASE}/api/auth/login`, {
+    const response = await fetch(`${API_BASE}/api/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: await request.text(),
+      body: JSON.stringify({ token }),
       cache: "no-store",
     });
-
     const data = await response.json().catch(() => ({}));
 
-    if (!response.ok) {
-      return Response.json(data, { status: response.status });
+    if (!response.ok || !data.token) {
+      cookieStore.delete("auth_token");
+      return Response.json(data, { status: response.status || 401 });
     }
 
-    if (!data.token) {
-      return Response.json(
-        { message: "Login response-д token ирсэнгүй." },
-        { status: 502 }
-      );
-    }
-
-    const cookieStore = await cookies();
-    const token = String(data.token)
-      .trim()
-      .replace(/^['"]|['"]$/g, "")
-      .replace(/^Bearer\s+/i, "")
-      .trim();
-
-    cookieStore.set("auth_token", token, {
+    cookieStore.set("auth_token", data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -41,7 +37,7 @@ export async function POST(request) {
 
     return Response.json({ success: true });
   } catch (error) {
-    console.error("Login backend request failed:", error);
+    console.error("Token refresh request failed:", error);
     return Response.json(
       { message: "Backend сервертэй холбогдож чадсангүй." },
       { status: 502 }

@@ -10,6 +10,7 @@ import {
   Row,
   Col,
   Typography,
+  message,
 } from "antd";
 
 import {
@@ -27,13 +28,17 @@ const { Title, Text } = Typography;
 export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
 const [profile, setProfile] = useState({
-  fullName: "Бат",
-  major: "IT",
-  phone: "99887766",
-  email: "bat@example.mn",
-  id: "F.IT3",
+  fullName: "",
+  firstName: "",
+  lastName: "",
+  major: "",
+  phone: "",
+  email: "",
+  id: "",
+  bio: "",
 
 });
 
@@ -44,40 +49,130 @@ useEffect(() => {
   if (savedProfile) {
     const data = JSON.parse(savedProfile);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile({
       fullName:
         data.fullName ||
-        "Бат",
+        "",
+
+      firstName: data.firstName || "",
+      lastName: data.lastName || "",
 
       major:
         data.major ||
-        "IT",
+        "",
 
       phone:
         data.phone ||
-        "99887766",
+        "",
 
       email:
         data.email ||
-        "bat@example.mn",
+        "",
 
 
       id:
         data.id ||
-        "F.IT3",
+        "",
+
+      bio: data.bio || "",
 
     });
   }
 }, []);
 
-const handleSave = () => {
-  localStorage.setItem(
-    "studentProfile",
-    JSON.stringify(profile)
-  );
+useEffect(() => {
+  let cancelled = false;
 
-  setIsEditing(false);
+  const loadTeacherProfile = async () => {
+    try {
+      const response = await fetch("/api/teacher/profile", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Багшийн профайлыг ачаалж чадсангүй.");
+      }
+
+      const teacher = data.data ?? data.teacher ?? data.profile ?? data;
+      const user = teacher.user ?? {};
+      const firstName = teacher.firstName ?? user.firstName ?? "";
+      const lastName = teacher.lastName ?? user.lastName ?? "";
+
+      if (!cancelled) {
+        setProfile((current) => ({
+          ...current,
+          fullName:
+            teacher.fullName ??
+            teacher.name ??
+            user.fullName ??
+            ([firstName, lastName].filter(Boolean).join(" ") ||
+              current.fullName),
+          firstName,
+          lastName,
+          major:
+            teacher.major?.name ??
+            teacher.major ??
+            teacher.department ??
+            teacher.specialization ??
+            "",
+          phone:
+            teacher.phone ??
+            teacher.phoneNumber ??
+            user.phone ??
+            user.phoneNumber ??
+            "",
+          email: teacher.email ?? user.email ?? current.email,
+          id:
+            teacher.teacherId ??
+            teacher.id ??
+            teacher.code ??
+            current.id,
+          bio: teacher.bio ?? teacher.description ?? "",
+        }));
+      }
+    } catch (error) {
+      if (!cancelled) {
+        message.error(error.message || "Багшийн профайлыг ачаалж чадсангүй.");
+      }
+    }
+  };
+
+  loadTeacherProfile();
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+const handleSave = async () => {
+  setIsSaving(true);
+
+  try {
+    const response = await fetch("/api/teacher/profile", {
+      method: "PUT",
+      credentials: "include",
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.message || "Багшийн профайлыг хадгалж чадсангүй.");
+    }
+
+    localStorage.setItem("studentProfile", JSON.stringify(profile));
+    setIsEditing(false);
+    message.success("Багшийн профайл шинэчлэгдлээ.");
+  } catch (error) {
+    message.error(error.message || "Багшийн профайлыг хадгалж чадсангүй.");
+  } finally {
+    setIsSaving(false);
+  }
 };
+
+const displayName =
+  [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+  profile.fullName;
 
 
   return (
@@ -90,7 +185,7 @@ const handleSave = () => {
           <Card className={styles.leftCard}>
             <div className={styles.avatarSection}>
               <Avatar size={100}>
-                {profile.fullName
+                {displayName
                   .split(" ")
                   .map((n) => n[0])
                   .join("")
@@ -98,7 +193,7 @@ const handleSave = () => {
               </Avatar>
 
               <Title level={3}>
-                {profile.fullName}
+                {displayName}
               </Title>
 
               <Text type="secondary">
@@ -131,6 +226,7 @@ const handleSave = () => {
               {isEditing ? (
                 <Button
                   type="primary"
+                  loading={isSaving}
                   onClick={handleSave}
                 >
                   Хадгалах
@@ -148,23 +244,38 @@ const handleSave = () => {
             </div>
 
             <Row gutter={16}>
-              <Col span={12}>
-                <label>Бүтэн нэр</label>
+              <Col span={8}>
+                <label>Нэр</label>
 
                 <Input
                   disabled={!isEditing}
-                  value={profile.fullName}
+                  value={profile.firstName}
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      fullName:
+                      firstName:
                         e.target.value,
                     })
                   }
                 />
               </Col>
 
-              <Col span={12}>
+              <Col span={8}>
+                <label>Овог</label>
+
+                <Input
+                  disabled={!isEditing}
+                  value={profile.lastName}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      lastName: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+
+              <Col span={8}>
                 <label>Мэргэжил</label>
 
                 <Input
@@ -214,6 +325,22 @@ const handleSave = () => {
                     ...profile,
                     email:
                       e.target.value,
+                  })
+                }
+              />
+            </div>
+
+            <div className={styles.bio}>
+              <label>Товч танилцуулга</label>
+
+              <Input.TextArea
+                rows={4}
+                disabled={!isEditing}
+                value={profile.bio}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    bio: e.target.value,
                   })
                 }
               />

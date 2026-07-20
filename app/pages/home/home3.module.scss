@@ -71,6 +71,7 @@
   padding: 5px 10px;
   font-size: 11px;
   background: white;
+  color: #333;
 }
 
 .bottom {
@@ -119,4 +120,17 @@
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+.modalTags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
 }

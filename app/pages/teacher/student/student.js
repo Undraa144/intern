@@ -35,6 +35,7 @@ export default function Student() {
   const [students, setStudents] = useState([]);
   const [open, setOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -42,6 +43,7 @@ export default function Student() {
     const savedReviews =
       JSON.parse(localStorage.getItem("studentReviews")) || [];
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReviews(savedReviews);
   }, []);
 
@@ -49,6 +51,7 @@ export default function Student() {
     const savedStudents = localStorage.getItem("students");
 
     if (savedStudents) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStudents(JSON.parse(savedStudents));
     }
   }, []);
@@ -81,8 +84,9 @@ export default function Student() {
     });
   };
 
-  const handleSave = () => {
-    form.validateFields().then((values) => {
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
       let updatedStudents = [...students];
 
       if (editingStudent) {
@@ -94,9 +98,38 @@ export default function Student() {
 
         message.success("Оюутны мэдээлэл шинэчлэгдлээ");
       } else {
+        setIsSaving(true);
+        const response = await fetch("/api/teacher/students", {
+          method: "PUT",
+          credentials: "include",
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.message || "Оюутан нэмэхэд алдаа гарлаа.");
+        }
+
+        const student = data.data ?? data.student ?? data;
+        const addedStudent = Array.isArray(student)
+          ? student[0]
+          : student;
+
         updatedStudents.unshift({
-          id: Date.now(),
+          id:
+            addedStudent?.studentId ??
+            addedStudent?.id ??
+            Date.now(),
           ...values,
+          ...(addedStudent && typeof addedStudent === "object"
+            ? addedStudent
+            : {}),
+          name:
+            addedStudent?.name ??
+            addedStudent?.fullName ??
+            ([addedStudent?.firstName, addedStudent?.lastName]
+              .filter(Boolean)
+              .join(" ") || values.name),
+          email: addedStudent?.email ?? values.email,
         });
 
         message.success("Оюутан нэмэгдлээ");
@@ -106,7 +139,13 @@ export default function Student() {
 
       setOpen(false);
       form.resetFields();
-    });
+    } catch (error) {
+      if (!error?.errorFields) {
+        message.error(error.message || "Оюутан нэмэхэд алдаа гарлаа.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleOpenReview = (student) => {
@@ -259,6 +298,7 @@ export default function Student() {
         open={open}
         title={editingStudent ? "Оюутан засах" : "Оюутан нэмэх"}
         onOk={handleSave}
+        confirmLoading={isSaving}
         onCancel={() => setOpen(false)}
         okText="Хадгалах"
         cancelText="Болих"

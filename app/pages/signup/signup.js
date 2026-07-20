@@ -308,6 +308,18 @@ export default function SignUp() {
                 <Input placeholder="Company Name" />
               </Form.Item>
 
+              <Form.Item
+                name="username"
+                className={styles.half}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your username!",
+                  },
+                ]}
+              >
+                <Input placeholder="Industry" />
+              </Form.Item>
             </div>
 
             <Form.Item

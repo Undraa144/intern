@@ -13,12 +13,14 @@ import {
   Col,
   Typography,
   Rate,
+  message,
 } from "antd";
 
 import {
   BankOutlined,
   GlobalOutlined,
   StarFilled ,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 
 import styles from "./profile.module.scss"
@@ -37,6 +39,8 @@ const [profile, setProfile] = useState({
   rate: 4.6,
   website: "datatech.mn",
   address: "Сүхбаатар дүүрэг, 1-р хороо",
+  city: "Улаанбаатар",
+  logoUrl: "",
   description:
     "Бид санхүү, банкны салбарт зориулсан програм хангамжийн шийдэл нийлүүлдэг.",
   verified: true,
@@ -46,6 +50,7 @@ useEffect(() => {
   const savedProfile = localStorage.getItem("studentProfile");
   if (savedProfile) {
     const data = JSON.parse(savedProfile);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile({
       companyName: data.companyName || "ДатаТех Солюшнс",
       industry: data.industry || "Мэдээллийн технологи",
@@ -63,6 +68,57 @@ useEffect(() => {
   }
 }, []);
 
+useEffect(() => {
+  let cancelled = false;
+
+  const loadOrganizationProfile = async () => {
+    try {
+      const response = await fetch("/api/organization/profile", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Байгууллагын профайлыг ачаалж чадсангүй.");
+      }
+
+      const organization = data.data ?? data.organization ?? data;
+
+      if (!cancelled) {
+        setProfile((current) => ({
+          ...current,
+          companyName:
+            organization.companyName ??
+            organization.organizationName ??
+            organization.name ??
+            current.companyName,
+          industry: organization.industry ?? current.industry,
+          rate: organization.rate ?? organization.rating ?? current.rate,
+          website: organization.site ?? organization.website ?? current.website,
+          address: organization.address ?? current.address,
+          city: organization.city ?? current.city,
+          logoUrl: organization.logoUrl ?? current.logoUrl,
+          description: organization.description ?? current.description,
+          verified: organization.verified ?? current.verified,
+        }));
+      }
+    } catch (error) {
+      if (!cancelled) {
+        message.error(
+          error.message || "Байгууллагын профайлыг ачаалж чадсангүй."
+        );
+      }
+    }
+  };
+
+  loadOrganizationProfile();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
 const averageRate =
 reviews.length > 0
 ? (
@@ -70,13 +126,40 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 ).toFixed(1)
 : 0;
 
-const handleSave = () => {
-  localStorage.setItem(
-    "companyProfile",
-    JSON.stringify(profile)
-  );
+const mapQuery = encodeURIComponent(
+  [profile.address, profile.city].filter(Boolean).join(", ")
+);
 
-  setIsEditing(false);
+const handleSave = async () => {
+  try {
+    const response = await fetch("/api/organization/profile", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        organizationName: profile.companyName,
+        industry: profile.industry,
+        address: profile.address,
+        city: profile.city,
+        site: profile.website,
+        logoUrl: profile.logoUrl,
+        description: profile.description,
+      }),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.message || "Байгууллагын профайлыг хадгалж чадсангүй.");
+    }
+
+    localStorage.setItem("companyProfile", JSON.stringify(profile));
+    setIsEditing(false);
+    message.success("Байгууллагын профайл шинэчлэгдлээ.");
+  } catch (error) {
+    message.error(
+      error.message || "Байгууллагын профайлыг хадгалж чадсангүй."
+    );
+  }
 };
 
 
@@ -93,7 +176,7 @@ const handleSave = () => {
 
   <Card className={styles.companyCard}>
     <div className={styles.companyInfo}>
-      <Avatar size={80}>
+      <Avatar size={80} src={profile.logoUrl || undefined}>
         {profile.companyName
           .split(" ")
           .map((n) => n[0])
@@ -145,13 +228,30 @@ const handleSave = () => {
         <Col span={12}>
           <div className={styles.infoItem}>
             <GlobalOutlined />
-            <a
-              href={`https://${profile.website}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {profile.website}
-            </a>
+            {isEditing ? (
+              <Input
+                value={profile.website}
+                placeholder="https://example.com"
+                onChange={(event) =>
+                  setProfile({
+                    ...profile,
+                    website: event.target.value,
+                  })
+                }
+              />
+            ) : (
+              <a
+                href={
+                  profile.website?.startsWith("http")
+                    ? profile.website
+                    : `https://${profile.website}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profile.website}
+              </a>
+            )}
           </div>
         </Col>
     </Row>
@@ -159,8 +259,39 @@ const handleSave = () => {
     <Card className={styles.mapCard}>
       <Title level={4}>Байршил</Title>
 
+      {isEditing && (
+        <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+          <Col span={8}>
+            <Input
+              prefix={<EnvironmentOutlined />}
+              value={profile.city}
+              placeholder="Хот"
+              onChange={(event) =>
+                setProfile({
+                  ...profile,
+                  city: event.target.value,
+                })
+              }
+            />
+          </Col>
+          <Col span={16}>
+            <Input
+              value={profile.address}
+              placeholder="Дэлгэрэнгүй хаяг"
+              onChange={(event) =>
+                setProfile({
+                  ...profile,
+                  address: event.target.value,
+                })
+              }
+            />
+          </Col>
+        </Row>
+      )}
+
       <iframe
-        src="https://maps.google.com/maps?q=47.9184,106.9177&z=15&output=embed"
+        src={`https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`}
+        title="Байгууллагын байршил"
         width="100%"
         height="350"
         style={{

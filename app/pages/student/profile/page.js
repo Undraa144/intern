@@ -15,6 +15,7 @@ import {
   Col,
   Typography,
   Rate,
+  message,
 } from "antd";
 
 import {
@@ -37,65 +38,192 @@ export default function ProfilePage() {
   const [reviews, setReviews] = useState([]);
 
   const [profile, setProfile] = useState({
-    fullName: "Батболдын Тэмүүлэн",
-    major: "Програм хангамж",
-    phone: "99112233",
-    email: "temuulen@example.mn",
-    gpa: "3.65",
-    bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
-    resume: "Resume.pdf",
-    skills: "React, Next.js, JavaScript, Python, SQL",
-    languages: "Монгол, English",
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    major: "",
+    university: "",
+    courseYear: "",
+    phone: "",
+    email: "",
+    gpa: "",
+    bio: "",
+    resume: "",
+    skills: "",
+    languages: "",
     teacherName: "",
     teacherPhone: "",
   });
 
-useEffect(() => {
-  const reviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
-
-  setReviews(reviews);
-}, []);
-
   useEffect(() => {
-  const savedReviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
+    const savedReviews =
+      JSON.parse(localStorage.getItem("studentReviews")) || [];
 
-  setReviews(savedReviews);
-}, []);
-
-  useEffect(() => {
-    const savedProfile = localStorage.getItem("studentProfile");
-
-    if (savedProfile) {
-      const data = JSON.parse(savedProfile);
-
-      setProfile({
-        fullName: data.fullName || "Батболдын Тэмүүлэн",
-        major: data.major || "Програм хангамж",
-        phone: data.phone || "99112233",
-        email: data.email || "temuulen@example.mn",
-        gpa: data.gpa || "3.65",
-        bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
-        resume: data.resume || "Resume.pdf",
-        skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
-        languages: data.languages || "Монгол, English",
-        teacherName: data.teacherName || "",
-        teacherPhone: data.teacherPhone || "",
-      });
-    }
+    // Restore browser-persisted reviews after mounting.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReviews(savedReviews);
   }, []);
 
-const averageRate =
-reviews.length > 0
-? (
-reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
-).toFixed(1)
-: 0;
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleSave = () => {
-    localStorage.setItem("studentProfile", JSON.stringify(profile));
-    setIsEditing(false);
+    async function loadProfile() {
+      try {
+        const [profileResponse, userResponse] = await Promise.all([
+          fetch("/api/students/profile", {
+            credentials: "include",
+            cache: "no-store",
+          }),
+          fetch("/api/auth/me", {
+            credentials: "include",
+            cache: "no-store",
+          }),
+        ]);
+        const data = await profileResponse.json().catch(() => ({}));
+        const me = await userResponse.json().catch(() => ({}));
+
+        if (!profileResponse.ok) {
+          throw new Error(data.message || "Профайл уншихад алдаа гарлаа");
+        }
+
+        if (!cancelled) {
+          const profileData = data.profile || data.student || data.data || data;
+          const userData =
+            profileData.user || profileData.student?.user || me.user || me;
+          const teacher = profileData.teacher || profileData.advisor || {};
+          const skills = profileData.skills || profileData.skillNames;
+          const languages = profileData.languages || profileData.languageNames;
+          const firstName =
+            profileData.firstName || userData.firstName || "";
+          const lastName = profileData.lastName || userData.lastName || "";
+          const combinedName = [firstName, lastName]
+            .filter(Boolean)
+            .join(" ");
+
+          setProfile((current) => ({
+            ...current,
+            firstName,
+            lastName,
+            fullName:
+              combinedName ||
+              profileData.fullName ||
+              profileData.name ||
+              userData.fullName ||
+              userData.name ||
+              "",
+            major:
+              profileData.major?.name ||
+              profileData.major ||
+              profileData.majorName ||
+              "",
+            university: profileData.university || "",
+            courseYear: profileData.courseYear ?? "",
+            phone:
+              profileData.phone ||
+              profileData.phoneNumber ||
+              userData.phone ||
+              userData.phoneNumber ||
+              "",
+            email: profileData.email || userData.email || "",
+            gpa: profileData.gpa ?? profileData.GPA ?? "",
+            bio:
+              profileData.shortBio ||
+              profileData.bio ||
+              profileData.description ||
+              "",
+            resume:
+              profileData.resume?.fileName ||
+              profileData.resume ||
+              profileData.resumeFileName ||
+              "",
+            skills: Array.isArray(skills)
+              ? skills.map((item) => item.name || item).join(", ")
+              : skills || "",
+            languages: Array.isArray(languages)
+              ? languages.map((item) => item.name || item).join(", ")
+              : languages || "",
+            teacherName:
+              profileData.teacherName ||
+              teacher.fullName ||
+              teacher.name ||
+              "",
+            teacherPhone:
+              profileData.teacherPhone ||
+              teacher.phone ||
+              teacher.phoneNumber ||
+              "",
+          }));
+        }
+      } catch (error) {
+        if (!cancelled) message.error(error.message);
+      }
+    }
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const averageRate =
+    reviews.length > 0
+      ? (
+        reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
+      ).toFixed(1)
+      : 0;
+
+  const handleSave = async () => {
+    try {
+      const userResponse = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const userData = await userResponse.json().catch(() => ({}));
+
+      if (!userResponse.ok) {
+        throw new Error(userData.message || "Нэвтрэх хугацаа дууссан байна.");
+      }
+
+      const user = userData.data ?? userData.user ?? userData;
+
+      if (user.role && user.role !== "STUDENT") {
+        throw new Error("Зөвхөн оюутны эрхээр профайл засах боломжтой.");
+      }
+
+      const response = await fetch("/api/students/profile", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: profile.firstName.trim(),
+          lastName: profile.lastName.trim(),
+          major: profile.major,
+          university: profile.university,
+          courseYear: Number(profile.courseYear),
+          gpa: Number(profile.gpa),
+          phone: Number(profile.phone),
+          shortBio: profile.bio,
+          skills: profile.skills.split(",").map((item) => item.trim()).filter(Boolean),
+          languages: profile.languages.split(",").map((item) => item.trim()).filter(Boolean),
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Профайл шинэчлэхэд алдаа гарлаа");
+      }
+
+      const fullName = [profile.firstName, profile.lastName]
+        .filter(Boolean)
+        .join(" ");
+      const updatedProfile = { ...profile, fullName };
+      setProfile(updatedProfile);
+      localStorage.setItem("studentProfile", JSON.stringify(updatedProfile));
+      setIsEditing(false);
+      message.success("Профайл амжилттай шинэчлэгдлээ");
+    } catch (error) {
+      message.error(error.message);
+    }
   };
 
   return (
@@ -143,11 +271,11 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               </Text>
 
               <p>
-                <UserOutlined /> {profile.teacherName || "Бат"}
+                <UserOutlined /> {profile.teacherName}
               </p>
 
               <p>
-                <PhoneOutlined /> {profile.teacherPhone || "99887766"}
+                <PhoneOutlined /> {profile.teacherPhone}
               </p>
             </div>
           </Card>
@@ -165,28 +293,43 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   icon={<EditOutlined />}
                   onClick={() => setIsEditing(true)}
                 >
-                  Заах
+                  Засах
                 </Button>
               )}
             </div>
 
             <Row gutter={16}>
-              <Col span={12}>
-                <label>Бүтэн нэр</label>
+              <Col span={8}>
+                <label>Нэр</label>
 
                 <Input
                   disabled={!isEditing}
-                  value={profile.fullName}
+                  value={profile.firstName}
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      fullName: e.target.value,
+                      firstName: e.target.value,
                     })
                   }
                 />
               </Col>
 
-              <Col span={12}>
+              <Col span={8}>
+                <label>Овог</label>
+
+                <Input
+                  disabled={!isEditing}
+                  value={profile.lastName}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      lastName: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+
+              <Col span={8}>
                 <label>Мэргэжил</label>
 
                 <Input
@@ -197,6 +340,30 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                       ...profile,
                       major: e.target.value,
                     })
+                  }
+                />
+              </Col>
+            </Row>
+
+            <Row gutter={16} style={{ marginTop: 16 }}>
+              <Col span={12}>
+                <label>Сургууль</label>
+                <Input
+                  disabled={!isEditing}
+                  value={profile.university}
+                  onChange={(e) =>
+                    setProfile({ ...profile, university: e.target.value })
+                  }
+                />
+              </Col>
+              <Col span={12}>
+                <label>Курс</label>
+                <Input
+                  type="number"
+                  disabled={!isEditing}
+                  value={profile.courseYear}
+                  onChange={(e) =>
+                    setProfile({ ...profile, courseYear: e.target.value })
                   }
                 />
               </Col>
@@ -344,35 +511,35 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
         </div>
 
         <Card
-        title={
+          title={
             <span>
-            Үнэлгээ, сэтгэгдэл{" "}
-            {reviews.length > 0 && (
+              Үнэлгээ, сэтгэгдэл{" "}
+              {reviews.length > 0 && (
                 <Tag color="gold" style={{ marginLeft: 10 }}>
-                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                  Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
                 </Tag>
-            )}
+              )}
             </span>
-        }
-        style={{ marginTop: 30 }}
+          }
+          style={{ marginTop: 30 }}
         >
-        {reviews.length === 0 ? (
+          {reviews.length === 0 ? (
             <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
-        ) : (
+          ) : (
             reviews.map((item, index) => (
-            <Card key={index} size="small" style={{ marginBottom: 15 }}>
+              <Card key={index} size="small" style={{ marginBottom: 15 }}>
                 <Tag color={item.from === "Багш" ? "blue" : "green"}>
-                {item.from}
+                  {item.from}
                 </Tag>
                 <div style={{ margin: "10px 0" }}>
-                <Rate disabled value={item.rate} />
+                  <Rate disabled value={item.rate} />
                 </div>
                 <Text>{item.comment}</Text>
                 <br />
                 <Text type="secondary">{item.date}</Text>
-            </Card>
+              </Card>
             ))
-        )}
+          )}
         </Card>
       </Content>
     </MainLayout>

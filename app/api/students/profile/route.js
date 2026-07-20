@@ -1,0 +1,148 @@
+import { cookies } from "next/headers";
+
+const API_BASE = process.env.API_BASE || "http://localhost:8088";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+  maxAge: 60 * 60 * 24 * 30,
+};
+
+function normalizeToken(value) {
+  return value
+    ?.trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/^Bearer\s+/i, "")
+    .trim();
+}
+
+async function getProfile(token) {
+  return fetch(`${API_BASE}/api/students/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+}
+
+async function updateProfile(token, body) {
+  return fetch(`${API_BASE}/api/students/profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+    cache: "no-store",
+  });
+}
+
+async function refreshAccessToken(token) {
+  const response = await fetch(`${API_BASE}/api/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+    cache: "no-store",
+  });
+  const data = await response.json().catch(() => ({}));
+
+  return response.ok ? normalizeToken(data.token) : null;
+}
+
+function proxyResponse(response, body) {
+  return new Response(body, {
+    status: response.status,
+    headers: {
+      "Content-Type":
+        response.headers.get("content-type") || "application/json",
+    },
+  });
+}
+
+export async function GET() {
+  const cookieStore = await cookies();
+  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+
+  if (!token) {
+    return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
+  }
+
+  try {
+    let response = await getProfile(token);
+
+    if (response.status === 401) {
+      const refreshedToken = await refreshAccessToken(token);
+
+      if (!refreshedToken) {
+        cookieStore.delete("auth_token");
+        return Response.json(
+          { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
+          { status: 401 }
+        );
+      }
+
+      token = refreshedToken;
+      cookieStore.set("auth_token", token, cookieOptions);
+      response = await getProfile(token);
+    }
+
+    const body = await response.text();
+
+    return proxyResponse(response, body);
+  } catch (error) {
+    console.error("Student profile request failed:", error);
+    return Response.json(
+      { message: "Оюутны профайлыг серверээс авч чадсангүй." },
+      { status: 502 }
+    );
+  }
+}
+
+export async function PUT(request) {
+  const cookieStore = await cookies();
+  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+
+  if (!token) {
+    return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
+  }
+
+  try {
+    const body = await request.text();
+    let response = await updateProfile(token, body);
+
+    if (response.status === 401) {
+      const refreshedToken = await refreshAccessToken(token);
+
+      if (!refreshedToken) {
+        cookieStore.delete("auth_token");
+        return Response.json(
+          { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
+          { status: 401 }
+        );
+      }
+
+      token = refreshedToken;
+      cookieStore.set("auth_token", token, cookieOptions);
+      response = await updateProfile(token, body);
+    }
+
+    if (response.status === 401) {
+      cookieStore.delete("auth_token");
+      return Response.json(
+        {
+          message:
+            "Backend профайл засах эрхийг зөвшөөрсөнгүй. Оюутны эрхээр дахин нэвтэрнэ үү.",
+        },
+        { status: 401 }
+      );
+    }
+
+    return proxyResponse(response, await response.text());
+  } catch (error) {
+    console.error("Student profile update failed:", error);
+    return Response.json(
+      { message: "Оюутны профайлыг шинэчилж чадсангүй." },
+      { status: 502 }
+    );
+  }
+}

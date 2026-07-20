@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   Modal,
@@ -14,6 +14,7 @@ import {
   Col,
   Typography,
   Divider,
+  message,
 } from "antd";
 
 import {
@@ -29,6 +30,35 @@ import styles from "./shome.module.scss";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
+
+const cardColors = [
+  "#ece9ff",
+  "#e9faf6",
+  "#fff0e6",
+  "#fdf0f5",
+  "#e8f6ff",
+  "#fff0f8",
+  "#f3f6fb",
+  "#fff3d9",
+];
+
+function normalizeList(value) {
+  const items = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? value.split(",")
+      : value
+        ? [value]
+        : [];
+
+  return items
+    .map((item) =>
+      typeof item === "string"
+        ? item.trim()
+        : item.name ?? item.majorName ?? item.title ?? ""
+    )
+    .filter(Boolean);
+}
 
 const jobs = [
     {
@@ -176,16 +206,208 @@ const router = useRouter();
 const [coverLetter, setCoverLetter] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [postings, setPostings] = useState(jobs);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
 
-  const filteredJobs = jobs.filter(
-    (job) =>
-      job.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchText.toLowerCase())
-  );
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleApply = (job) => {
+    const loadPostings = async () => {
+      try {
+        const endpoint = searchText
+          ? `/api/postings/search/${encodeURIComponent(searchText)}`
+          : "/api/postings";
+        const response = await fetch(endpoint, { cache: "no-store" });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.message || "Заруудыг ачаалж чадсангүй.");
+        }
+
+        const payload = Array.isArray(data)
+          ? data
+          : data.content ?? data.postings ?? data.data ?? [];
+        const list = Array.isArray(payload) ? payload : [];
+
+        if (!cancelled) {
+          setPostings(
+            list.map((posting, index) => ({
+              ...posting,
+              id:
+                posting.id ??
+                posting.postingId ??
+                posting.internshipPostId ??
+                index,
+              company:
+                posting.organizationName ??
+                posting.companyName ??
+                posting.company ??
+                posting.organization?.organizationName ??
+                posting.organization?.name ??
+                "Байгууллагын нэр байхгүй",
+              image: "/company.jpeg",
+              color: cardColors[index % cardColors.length],
+              location: posting.city ?? posting.location ?? "-",
+              salary: posting.isSalaryUnspecified
+                ? "Тохиролцоно"
+                : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`,
+              gpa: posting.minGpa ?? posting.gpa ?? "-",
+              vacancies: posting.vacancyCount ?? posting.vacancies ?? "-",
+              deadline: posting.deadline ?? "-",
+              majors: normalizeList(
+                posting.requiredMajor ??
+                  posting.requiredMajors ??
+                  posting.majors
+              ),
+              skills: normalizeList(
+                posting.requiredSkills ?? posting.skills
+              ),
+              languages: normalizeList(posting.languages),
+            }))
+          );
+        }
+      } catch (error) {
+        message.error(error.message || "Заруудыг ачаалж чадсангүй.");
+      }
+    };
+
+    loadPostings();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchText]);
+
+  const filteredJobs = postings;
+
+  const handleApply = async (job) => {
     setSelectedJob(job);
     setOpen(true);
+    setIsLoadingDetail(true);
+
+    try {
+      const response = await fetch(`/api/postings/${job.id}`, {
+        cache: "no-store",
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
+      }
+
+      const detail = data.data ?? data.posting ?? data;
+      setSelectedJob({
+        ...job,
+        ...detail,
+        company:
+          detail.organizationName ??
+          detail.companyName ??
+          detail.company ??
+          detail.organization?.organizationName ??
+          detail.organization?.name ??
+          job.company,
+        location: detail.city ?? detail.location ?? job.location,
+        salary: detail.isSalaryUnspecified
+          ? "Тохиролцоно"
+          : detail.salaryMin != null || detail.salaryMax != null
+            ? `${detail.salaryMin ?? 0} - ${detail.salaryMax ?? 0} ₮`
+            : job.salary,
+        gpa: detail.minGpa ?? detail.gpa ?? job.gpa,
+        vacancies:
+          detail.vacancyCount ?? detail.vacancies ?? job.vacancies,
+        deadline: detail.deadline ?? job.deadline,
+        majors: normalizeList(
+          detail.requiredMajor ??
+            detail.requiredMajors ??
+            detail.majors ??
+            job.majors
+        ),
+        skills: normalizeList(
+          detail.requiredSkills ?? detail.skills ?? job.skills
+        ),
+        languages: normalizeList(detail.languages ?? job.languages),
+      });
+    } catch (error) {
+      message.error(error.message || "Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
+  const handleSubmitApplication = async () => {
+    if (!coverLetter.trim()) {
+      message.warning("Өргөдлийн захидлаа оруулна уу.");
+      return;
+    }
+
+    setIsApplying(true);
+
+    try {
+      const userResponse = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const userData = await userResponse.json().catch(() => ({}));
+
+      if (!userResponse.ok) {
+        throw new Error(userData.message || "Оюутны мэдээллийг авч чадсангүй.");
+      }
+
+      const user = userData.data ?? userData.user ?? userData;
+
+      if (user.role && user.role !== "STUDENT") {
+        throw new Error("Зөвхөн оюутны эрхээр хүсэлт илгээх боломжтой.");
+      }
+
+      let studentId = user.studentId ?? user.student?.id ?? "";
+
+      if (!studentId) {
+        const profileResponse = await fetch("/api/students/profile", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const profileData = await profileResponse.json().catch(() => ({}));
+
+        if (!profileResponse.ok) {
+          throw new Error(
+            profileData.message || "Оюутны профайлын ID-г авч чадсангүй."
+          );
+        }
+
+        const student =
+          profileData.data ?? profileData.student ?? profileData.profile ?? profileData;
+        studentId = student.studentId ?? student.id ?? "";
+      }
+
+      if (!studentId) {
+        throw new Error("Оюутны ID олдсонгүй.");
+      }
+
+      const response = await fetch("/api/applicatioins", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          coverLetter: coverLetter.trim(),
+          studentId,
+          internshipPostId: selectedJob.id,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Хүсэлт илгээхэд алдаа гарлаа.");
+      }
+
+      message.success("Хүсэлт амжилттай илгээгдлээ.");
+      setCoverLetter("");
+      setOpen(false);
+      router.push("/pages/student/request");
+    } catch (error) {
+      message.error(error.message || "Хүсэлт илгээхэд алдаа гарлаа.");
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -193,8 +415,8 @@ const [coverLetter, setCoverLetter] = useState("");
       <h1 className={styles.title}>Санал болгох ажил</h1>
 
       <div className={styles.grid}>
-        {filteredJobs.map((job, index) => (
-          <div key={index} className={styles.card}>
+        {filteredJobs.map((job) => (
+          <div key={job.id ?? `${job.company}-${job.title}`} className={styles.card}>
             <div
               className={styles.top}
               style={{ backgroundColor: job.color }}
@@ -211,8 +433,12 @@ const [coverLetter, setCoverLetter] = useState("");
               <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
-                <span>Part Time</span>
-                <span>Internship</span>
+                {(job.majors.length > 0
+                  ? job.majors.slice(0, 3)
+                  : ["Мэргэжил заагаагүй"]
+                ).map((major) => (
+                  <span key={major}>{major}</span>
+                ))}
               </div>
             </div>
 
@@ -252,6 +478,7 @@ const [coverLetter, setCoverLetter] = useState("");
             </Text>
 
             <Card
+              loading={isLoadingDetail}
               style={{
                 marginTop: 20,
                 marginBottom: 20,
@@ -410,26 +637,8 @@ const [coverLetter, setCoverLetter] = useState("");
 
             <Button
               type="primary"
-              onClick={() => {
-                const request = {
-                  title: selectedJob.title,
-                  company: selectedJob.company,
-                  description: coverLetter,
-                  status: "pending",
-                  sentDate: new Date().toISOString().split("T")[0],
-                };
-
-                const oldRequests =
-                  JSON.parse(localStorage.getItem("requests")) || [];
-
-                localStorage.setItem(
-                  "requests",
-                  JSON.stringify([...oldRequests, request])
-                );
-
-                setOpen(false);
-                router.push("/pages/student/request");
-              }}
+              loading={isApplying}
+              onClick={handleSubmitApplication}
             >
               Хүсэлт илгээх
             </Button>

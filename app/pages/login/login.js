@@ -8,22 +8,6 @@ import styles from "./login.module.scss";
 
 export default function Login() {
   const router = useRouter();
-
-/*const onFinish = async (values, role) => {
-    if (role === "student") {
-      router.push("/pages/student/home");
-    }
-
-    if (role === "employer") {
-      router.push("/pages/employer/home");
-    }
-
-    if (role === "teacher") {
-      router.push("/pages/teacher/home");
-    }
-  };*/
-  const API_BASE = process.env.BASE || "http://localhost:8088";
-
   const onFinish = async (values) => {
     try {
       const response = await fetch("/api/auth/login", {
@@ -37,19 +21,6 @@ export default function Login() {
         }),
       });
 
-        const token = localStorage.getItem("token");
-
-        const userData = await fetch(`${API_BASE}/api/users/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data1 = await userData.json();
-        console.log(data1)
-
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -57,9 +28,27 @@ export default function Login() {
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
+      const loginSucceeded = data.success;
+      if (!loginSucceeded) {
+        alert("Токен олдсонгүй.");
+        return;
       }
+      
+      const userData = await fetch("/api/auth/me", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (!userData.ok) {
+        alert("Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
+        return;
+      }
+
+      const data1 = await userData.json();
+      console.log(data1);
 
       if (data1.role === "STUDENT") {
         router.push("/pages/student/home");
@@ -67,41 +56,35 @@ export default function Login() {
         router.push("/pages/teacher/home");
       } else if (data1.role === "COMPANY") {
         router.push("/pages/employer/home");
-      }
-      else{
-        alert("хэрэглэгчийн role олдсонгүй")
+      } else {
+        alert("Хэрэглэгчийн role олдсонгүй");
       }
     } catch (error) {
       console.error(error);
       alert("Сервертэй холбогдож чадсангүй.");
     }
   };
-  
-
 
   const items = [
-  {
-    key: '1',
-    label: 'Student',
-    children: (
-      <div className={styles.form}>
+    {
+      key: '1',
+      label: 'Student',
+      children: (
+        <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Log In.</h2>
               <p>
-                Dont have  any account?{" "}
+                Dont have any account?{" "}
                 <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
-
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values, "student")}
-
+            onFinish={(values) => onFinish(values)}
           >
-
             <Form.Item
               name="email"
               rules={[
@@ -160,112 +143,28 @@ export default function Login() {
               Log In
             </Button>
           </Form>
-      </div>
-    ),
-  },
-  {
-    key: '2',
-    label: 'Employer',
-    children: (
-      <div className={styles.form}>
-          <div className={styles.topRow}>
-            <div>
-              <h2>Log In.</h2>
-              <p>
-                Dont have  any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
-              </p>
-            </div>
-
-          </div>
-
-          <Form
-            layout="vertical"
-            onFinish={(values) => onFinish(values, "employer")}
-          >
-
-            <Form.Item
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your email!",
-                },
-                {
-                  type: "email",
-                  message: "Invalid email!",
-                },
-              ]}
-            >
-              <Input placeholder="Email address" />
-            </Form.Item>
-
-            <Form.Item
-              name="password"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your password!",
-                },
-              ]}
-            >
-              <Input.Password placeholder="Password" />
-            </Form.Item>
-
-            <Form.Item
-              name="agreement"
-              valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
-            >
-              <Checkbox>
-                Remember me
-              </Checkbox>
-            </Form.Item>
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              className={styles.submitBtn}
-            >
-              Log In
-            </Button>
-          </Form>
-      </div>
+        </div>
       ),
-  },
-  {
-    key: '3',
-    label: 'Teacher',
-    children: (
-      <div className={styles.form}>
+    },
+    {
+      key: '2',
+      label: 'Employer',
+      children: (
+        <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Log In.</h2>
               <p>
-                Dont have  any account?{" "}
+                Dont have any account?{" "}
                 <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
-
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values, "teacher")}
+            onFinish={(values) => onFinish(values)}
           >
-
             <Form.Item
               name="email"
               rules={[
@@ -324,10 +223,90 @@ export default function Login() {
               Log In
             </Button>
           </Form>
-      </div>
-    ),
-  },
-];
+        </div>
+      ),
+    },
+    {
+      key: '3',
+      label: 'Teacher',
+      children: (
+        <div className={styles.form}>
+          <div className={styles.topRow}>
+            <div>
+              <h2>Log In.</h2>
+              <p>
+                Dont have any account?{" "}
+                <Link href="/pages/signup">Sign Up</Link>
+              </p>
+            </div>
+          </div>
+
+          <Form
+            layout="vertical"
+            onFinish={(values) => onFinish(values)}
+          >
+            <Form.Item
+              name="email"
+              rules={[
+                {
+                  required: true,
+                  message: "Please input your email!",
+                },
+                {
+                  type: "email",
+                  message: "Invalid email!",
+                },
+              ]}
+            >
+              <Input placeholder="Email address" />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              rules={[
+                {
+                  required: true,
+                  message: "Please input your password!",
+                },
+              ]}
+            >
+              <Input.Password placeholder="Password" />
+            </Form.Item>
+
+            <Form.Item
+              name="agreement"
+              valuePropName="checked"
+              rules={[
+                {
+                  validator: (_, value) =>
+                    value
+                      ? Promise.resolve()
+                      : Promise.reject(
+                          new Error(
+                            "Remember me"
+                          )
+                        ),
+                },
+              ]}
+            >
+              <Checkbox>
+                Remember me
+              </Checkbox>
+            </Form.Item>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              className={styles.submitBtn}
+            >
+              Log In
+            </Button>
+          </Form>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className={styles.main}>
@@ -335,11 +314,13 @@ export default function Login() {
 
       <div className={styles.right}>
         <Tabs
-        defaultActiveKey="1"
-        centered
-        items={items}
+          defaultActiveKey="1"
+          centered
+          items={items}
         />
       </div>
     </div>
   );
 }
+
+
