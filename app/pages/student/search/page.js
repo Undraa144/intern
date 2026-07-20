@@ -36,11 +36,14 @@ const onSearch = (value) => {
 
   const options = [
     { value: "IT" },
-    { value: "Marketing" },
-    { value: "Design" },
-    { value: "Finance" },
-    { value: "Human Resource" },
-    { value: "Software Engineer" },
+    { value: "Маркетинг" },
+    { value: "Дизайн" },
+    { value: "Санхүү" },
+    { value: "Хүний нөөц" },
+    { value: "Програм хангамжийн инженер" },
+    { value: "Төслийн менежер" },
+    { value: "Өгөгдлийн шинжилгээ" },
+
   ];
 
 

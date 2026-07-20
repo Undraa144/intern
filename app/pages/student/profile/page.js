@@ -41,6 +41,7 @@ export default function ProfilePage() {
     major: "Програм хангамж",
     phone: "99112233",
     email: "temuulen@example.mn",
+    school: "МУИС",
     gpa: "3.65",
     bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
     resume: "Resume.pdf",
@@ -75,6 +76,7 @@ useEffect(() => {
         major: data.major || "Програм хангамж",
         phone: data.phone || "99112233",
         email: data.email || "temuulen@example.mn",
+        school: data.school || "МУИС",
         gpa: data.gpa || "3.65",
         bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
         resume: data.resume || "Resume.pdf",
@@ -117,8 +119,10 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               <Title level={3}>{profile.fullName}</Title>
 
               <Text type="secondary">{profile.major}</Text>
+              
 
               <div className={styles.tags}>
+                <Tag color="green">Сургууль :  {profile.school}</Tag>
                 <Tag color="blue">GPA {profile.gpa}</Tag>
               </div>
             </div>
@@ -217,6 +221,20 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   }
                 />
               </Col>
+              <Col span={12}>
+                <label>Сургууль</label>
+
+                <Input
+                  disabled={!isEditing}
+                  value={profile.school}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      gpa: e.target.value,
+                    })
+                  }
+                />
+              </Col>
 
               <Col span={12}>
                 <label>GPA</label>
@@ -232,9 +250,8 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   }
                 />
               </Col>
-            </Row>
 
-            <div className={styles.bio}>
+              <Col span={12}>
               <label>Имэйл</label>
 
               <Input
@@ -247,7 +264,9 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   })
                 }
               />
-            </div>
+              </Col> 
+
+            </Row>
 
             <div className={styles.bio}>
               <label>Resume (PDF)</label>

@@ -146,15 +146,15 @@ const onFinish = async (values, role) => {
   const items = [
     {
       key: '1',
-      label: 'Student',
+      label: 'Оюутан',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Already have account?{" "}
-                <Link href="/pages/login">Log In</Link>
+                Аль хэдийн бүртгэлтэй юу?{" "}
+                <Link href="/pages/login">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -172,11 +172,11 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your full name!",
+                    message: "Овог бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Full Name" />
+                <Input placeholder="Овог" />
               </Form.Item>
 
               <Form.Item
@@ -185,11 +185,11 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your username!",
+                    message: "Нэрээ бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Username" />
+                <Input placeholder="Нэр" />
               </Form.Item>
             </div>
 
@@ -198,15 +198,15 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -214,11 +214,11 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үг оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -227,7 +227,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please confirm your password!",
+                  message: "Нууц үгээ давтаж бичнэ үү!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -239,13 +239,13 @@ const onFinish = async (values, role) => {
                     }
 
                     return Promise.reject(
-                      new Error("Passwords do not match!")
+                      new Error("Нууц үг буруу байна!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="Confirm Password" />
+              <Input.Password placeholder="Нууц үг давтах" />
             </Form.Item>
 
             <Form.Item
@@ -265,8 +265,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                <a href="/"> Үйлчилгээний нөхцөл </a>
+                {" "} -тэй танилцаж зөвшөөрөв
               </Checkbox>
             </Form.Item>
 
@@ -276,7 +276,7 @@ const onFinish = async (values, role) => {
               block
               className={styles.submitBtn}
             >
-              Create Account
+              Бүртгүүлэх
             </Button>
           </Form>
         </div>
@@ -284,15 +284,15 @@ const onFinish = async (values, role) => {
     },
     {
       key: '2',
-      label: 'Employer',
+      label: 'Ажилтан',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Already have account?{" "}
-                <Link href="/pages/login">Log In</Link>
+                Аль хэдийн бүртгэлтэй юу?{" "}
+                <Link href="/pages/login">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -301,7 +301,7 @@ const onFinish = async (values, role) => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "employer")}
+            onFinish={(values) => onFinish(values, "student")}
           >
             <div className={styles.row}>
               <Form.Item
@@ -310,11 +310,11 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your full name!",
+                    message: "Компани нэрээ бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Company Name" />
+                <Input placeholder="Компани нэр" />
               </Form.Item>
 
             </div>
@@ -324,15 +324,15 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -340,11 +340,11 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үг оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -353,7 +353,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please confirm your password!",
+                  message: "Нууц үгээ давтаж бичнэ үү!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -365,13 +365,13 @@ const onFinish = async (values, role) => {
                     }
 
                     return Promise.reject(
-                      new Error("Passwords do not match!")
+                      new Error("Нууц үг буруу байна!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="Confirm Password" />
+              <Input.Password placeholder="Нууц үг давтах" />
             </Form.Item>
 
             <Form.Item
@@ -391,8 +391,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                <a href="/"> Үйлчилгээний нөхцөл </a>
+                {" "} -тэй танилцаж зөвшөөрөв
               </Checkbox>
             </Form.Item>
 
@@ -402,7 +402,7 @@ const onFinish = async (values, role) => {
               block
               className={styles.submitBtn}
             >
-              Create Account
+              Бүртгүүлэх
             </Button>
           </Form>
         </div>
@@ -410,15 +410,15 @@ const onFinish = async (values, role) => {
     },
     {
       key: '3',
-      label: 'Teacher',
+      label: 'Багш',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Create account.</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Already have account?{" "}
-                <Link href="/pages/login">Log In</Link>
+                Аль хэдийн бүртгэлтэй юу?{" "}
+                <Link href="/pages/login">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -427,7 +427,7 @@ const onFinish = async (values, role) => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "teacher")}
+            onFinish={(values) => onFinish(values, "student")}
           >
             <div className={styles.row}>
               <Form.Item
@@ -436,11 +436,11 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your full name!",
+                    message: "Овог бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Full Name" />
+                <Input placeholder="Овог" />
               </Form.Item>
 
               <Form.Item
@@ -449,11 +449,11 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Please input your username!",
+                    message: "Нэрээ бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Username" />
+                <Input placeholder="Нэр" />
               </Form.Item>
             </div>
 
@@ -462,15 +462,15 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -478,11 +478,11 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үг оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -491,7 +491,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Please confirm your password!",
+                  message: "Нууц үгээ давтаж бичнэ үү!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -503,13 +503,13 @@ const onFinish = async (values, role) => {
                     }
 
                     return Promise.reject(
-                      new Error("Passwords do not match!")
+                      new Error("Нууц үг буруу байна!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="Confirm Password" />
+              <Input.Password placeholder="Нууц үг давтах" />
             </Form.Item>
 
             <Form.Item
@@ -529,8 +529,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                I've read and agree with your{" "}
-                <a href="/">Terms of Services</a>
+                <a href="/"> Үйлчилгээний нөхцөл </a>
+                {" "} -тэй танилцаж зөвшөөрөв
               </Checkbox>
             </Form.Item>
 
@@ -540,7 +540,7 @@ const onFinish = async (values, role) => {
               block
               className={styles.submitBtn}
             >
-              Create Account
+              Бүртгүүлэх
             </Button>
           </Form>
         </div>

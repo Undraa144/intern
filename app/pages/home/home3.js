@@ -7,49 +7,49 @@ import styles from "./home3.module.scss";
 const jobs = [
   {
     company: "Facebook",
-    title: "Marketing Manager",
+    title: "Маркетинг",
     image: "/company.jpeg",
     color: "#ece9ff",
   },
   {
     company: "Dribbble",
-    title: "UI Designer",
+    title: "UI Дизайнер",
     image: "/company.jpeg",
     color: "#e9faf6",
   },
   {
     company: "WordPress",
-    title: "Frontend Developer",
+    title: "Frontend Хөгжүүлэгч",
     image: "/company.jpeg",
     color: "#fff0e6",
   },
   {
     company: "Fiverr",
-    title: "Product Designer",
+    title: "Дизайн",
     image: "/company.jpeg",
     color: "#fdf0f5",
   },
   {
     company: "Google",
-    title: "Software Engineer",
+    title: "Програм хангамжийн инженер ",
     image: "/company.jpeg",
     color: "#e8f6ff",
   },
   {
     company: "Skype",
-    title: "UX Researcher",
+    title: "UX ",
     image: "/company.jpeg",
     color: "#fff0f8",
   },
   {
     company: "Apple",
-    title: "iOS Developer",
+    title: "iOS Хөгжүүлэгч",
     image: "/company.jpeg",
     color: "#f3f6fb",
   },
   {
     company: "Slack",
-    title: "Project Manager",
+    title: "Төслийн менежер",
     image: "/company.jpeg",
     color: "#fff3d9",
   },
@@ -83,17 +83,13 @@ export default function Home3({ searchText = "" }) {
 
               <h3>{job.title}</h3>
 
-              <p>Дадлагажигч оюутан</p>
-
               <div className={styles.tags}>
-                <span>Part Time</span>
-                <span>Middle Level</span>
-                <span>Project Work</span>
+                <span>Дадлага</span>
               </div>
             </div>
 
             <div className={styles.bottom}>
-              <span>₮</span>
+              <span>600 - 900 мянга ₮</span>
 
               <button>
                 <Link href="/pages/signup">

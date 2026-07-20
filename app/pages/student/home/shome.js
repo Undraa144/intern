@@ -33,7 +33,7 @@ const { Title, Text } = Typography;
 const jobs = [
     {
     company: "Instagram",
-    title: "Marketing",
+    title: "Маркетинг",
     image: "/company.jpeg",
     color: "#ece9ff",
     location: "Улаанбаатар",
@@ -50,7 +50,7 @@ const jobs = [
   },
     {
     company: "Unitel",
-    title: "IT engineer",
+    title: "IT инженер",
     image: "/company.jpeg",
     color: "#e9faf6",
     location: "Улаанбаатар",
@@ -67,7 +67,7 @@ const jobs = [
   },
     {
     company: "MSC",
-    title: "Design",
+    title: "Дизайн",
     image: "/company.jpeg",
     color: "#fff0e6",
     location: "Улаанбаатар",
@@ -84,7 +84,7 @@ const jobs = [
   },
     {
     company: "Khan Bank",
-    title: "Finance",
+    title: "Санхүү",
     image: "/company.jpeg",
     color: "#fdf0f5",
     location: "Улаанбаатар",
@@ -101,7 +101,7 @@ const jobs = [
   },
     {
     company: "Ub Даатгал ",
-    title: "Human Resource",
+    title: "Хүний нөөц",
     image: "/company.jpeg",
     color: "#e8f6ff",
     location: "Улаанбаатар",
@@ -119,7 +119,7 @@ const jobs = [
 
   {
     company: "DataTex Солюшнс",
-    title: "Data Analysis",
+    title: "Өгөгдлийн шинжилгээ",
     image: "/company.jpeg",
     color: "#fff0f8",
     location: "Улаанбаатар",
@@ -136,7 +136,7 @@ const jobs = [
   },
   {
     company: "Google",
-    title: "Software Engineer ",
+    title: "Програм хангамжийн инженер ",
     image: "/company.jpeg",
     color: "#f3f6fb",
     location: "Улаанбаатар",
@@ -153,7 +153,7 @@ const jobs = [
   },
     {
     company: "Slack",
-    title: "Project Manager ",
+    title: "Төслийн менежер ",
     image: "/company.jpeg",
     color: "#fff3d9",
     location: "Улаанбаатар",
@@ -211,8 +211,7 @@ const [coverLetter, setCoverLetter] = useState("");
               <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
-                <span>Part Time</span>
-                <span>Internship</span>
+                <span>Дадлага</span>
               </div>
             </div>
 

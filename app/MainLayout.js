@@ -220,11 +220,11 @@ export default function MainLayout({
           <div className={styles.actions}>
             {role === "home" ? (
               <Button className={styles.signin}>
-                <Link href="/pages/signup">Sign In</Link>
+                <Link href="/pages/signup">Нэвтрэх</Link>
               </Button>
             ) : (
               <Button className={styles.signin}>
-                <Link href="/">Sign Out</Link>
+                <Link href="/">Гарах</Link>
               </Button>
             )}
           </div>

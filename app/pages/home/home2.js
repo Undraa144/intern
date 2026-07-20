@@ -5,43 +5,43 @@ import styles from "./home2.module.scss";
 
 const categories = [
   {
-    title: "Accounting",
-    jobs: "12 Jobs",
+    title: "Санхүү",
+    jobs: "12 ажил",
     image: "/majors/accounting.jpeg",
   },
   {
-    title: "Creative",
-    jobs: "30 Jobs",
+    title: "Хүний нөөц",
+    jobs: "30 ажил",
     image: "/majors/creative.jpeg",
   },
   {
     title: "Хөгжүүлэлт",
-    jobs: "22 Jobs",
+    jobs: "22 ажил",
     image: "/majors/development.jpeg",
   },
   {
-    title: "Marketing",
-    jobs: "39 Jobs",
+    title: "Маркетинг",
+    jobs: "39 ажил",
     image: "/majors/marketing.jpeg",
   },
   {
     title: "Эрх зүй",
-    jobs: "100 Jobs",
+    jobs: "10 ажил",
     image: "/majors/legal.jpeg",
   },
   {
-    title: "Диеайн",
-    jobs: "39 Jobs",
+    title: "Дизайн",
+    jobs: "39 ажил",
     image: "/majors/design.jpeg",
   },
   {
-    title: "Engineer",
-    jobs: "12 Jobs",
+    title: "Инженер",
+    jobs: "12 ажил",
     image: "/majors/engineer.jpeg",
   },
   {
-    title: "Business",
-    jobs: "30 Jobs",
+    title: "Бизнес",
+    jobs: "30 ажил",
     image: "/majors/business.jpeg",
   },
 ];
