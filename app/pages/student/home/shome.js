@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link"
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Modal,
@@ -14,7 +13,6 @@ import {
   Col,
   Typography,
   Divider,
-  message,
 } from "antd";
 
 import {
@@ -27,399 +25,168 @@ import {
 } from "@ant-design/icons";
 
 import styles from "./shome.module.scss";
+import {
+  toStudentJob,
+  withStudentJobDetail,
+} from "../../../utils/student-job.mjs";
+import {
+  createApplicationPayload,
+  getStudentIdFromResponse,
+} from "../../../utils/application-payload.mjs";
+import { parseResponseBody } from "../../../utils/response-body.mjs";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
-const cardColors = [
-  "#ece9ff",
-  "#e9faf6",
-  "#fff0e6",
-  "#fdf0f5",
-  "#e8f6ff",
-  "#fff0f8",
-  "#f3f6fb",
-  "#fff3d9",
-];
-
-function normalizeList(value) {
-  const items = Array.isArray(value)
-    ? value
-    : typeof value === "string"
-      ? value.split(",")
-      : value
-        ? [value]
-        : [];
-
-  return items
-    .map((item) =>
-      typeof item === "string"
-        ? item.trim()
-        : item.name ?? item.majorName ?? item.title ?? ""
-    )
-    .filter(Boolean);
-}
-
-const jobs = [
-    {
-    company: "Instagram",
-    title: "Marketing",
-    image: "/company.jpeg",
-    color: "#ece9ff",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Unitel",
-    title: "IT engineer",
-    image: "/company.jpeg",
-    color: "#e9faf6",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "MSC",
-    title: "Design",
-    image: "/company.jpeg",
-    color: "#fff0e6",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Khan Bank",
-    title: "Finance",
-    image: "/company.jpeg",
-    color: "#fdf0f5",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Ub Даатгал ",
-    title: "Human Resource",
-    image: "/company.jpeg",
-    color: "#e8f6ff",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-
-  {
-    company: "DataTex Солюшнс",
-    title: "Data Analysis",
-    image: "/company.jpeg",
-    color: "#fff0f8",
-    location: "Улаанбаатар",
-    duration: "20 цаг / 7 хоног",
-    salary: "600 - 900 мянга ₮",
-    gpa: "3.20",
-    vacancies: "1",
-    deadline: "2026.07.15",
-    description:
-      "Бодит бизнесийн өгөгдөл дээр шинжилгээ хийж, тайлан дашбоард бэлтгэх ажилд оролцоно. Python, SQL мэдлэгтэй байх шаардлагатай.",
-    majors: ["Програм хангамж", "Статистик", "Математик"],
-    skills: ["Python", "SQL", "Excel"],
-    languages: ["Монгол", "Англи"],
-  },
-  {
-    company: "Google",
-    title: "Software Engineer ",
-    image: "/company.jpeg",
-    color: "#f3f6fb",
-    location: "Улаанбаатар",
-    duration: "30 цаг / 7 хоног",
-    salary: "1,200,000 ₮",
-    gpa: "3.00",
-    vacancies: "2",
-    deadline: "2026.08.01",
-    description:
-      "Frontend болон Backend хөгжүүлэлтийн төсөл дээр ажиллана.",
-    majors: ["Програм хангамж"],
-    skills: ["React", "Next.js", "Node.js"],
-    languages: ["Монгол", "Англи"],
-  },
-    {
-    company: "Slack",
-    title: "Project Manager ",
-    image: "/company.jpeg",
-    color: "#fff3d9",
-    location: "Улаанбаатар",
-    duration: "30 цаг / 7 хоног",
-    salary: "1,200,000 ₮",
-    gpa: "3.00",
-    vacancies: "2",
-    deadline: "2026.08.01",
-    description:
-      "Frontend болон Backend хөгжүүлэлтийн төсөл дээр ажиллана.",
-    majors: ["Програм хангамж"],
-    skills: ["React", "Next.js", "Node.js"],
-    languages: ["Монгол", "Англи"],
-  },
-];
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
 export default function SHome({ searchText = "" }) {
-  
-const router = useRouter();
-const [coverLetter, setCoverLetter] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [postings, setPostings] = useState(jobs);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [hasDetailLoadError, setHasDetailLoadError] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
+  const detailRequestIdRef = useRef(0);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const loadPostings = async () => {
+    const loadJobs = async () => {
       try {
-        const endpoint = searchText
-          ? `/api/postings/search/${encodeURIComponent(searchText)}`
-          : "/api/postings";
-        const response = await fetch(endpoint, { cache: "no-store" });
-        const data = await response.json().catch(() => ({}));
+        const response = await fetch(`${API_BASE}/api/postings`);
 
         if (!response.ok) {
-          throw new Error(data.message || "Заруудыг ачаалж чадсангүй.");
+          throw new Error(`алдааа: ${response.status}`);
         }
 
-        const payload = Array.isArray(data)
-          ? data
-          : data.content ?? data.postings ?? data.data ?? [];
-        const list = Array.isArray(payload) ? payload : [];
-
-        if (!cancelled) {
-          setPostings(
-            list.map((posting, index) => ({
-              ...posting,
-              id:
-                posting.id ??
-                posting.postingId ??
-                posting.internshipPostId ??
-                index,
-              company:
-                posting.organizationName ??
-                posting.companyName ??
-                posting.company ??
-                posting.organization?.organizationName ??
-                posting.organization?.name ??
-                "Байгууллагын нэр байхгүй",
-              image: "/company.jpeg",
-              color: cardColors[index % cardColors.length],
-              location: posting.city ?? posting.location ?? "-",
-              salary: posting.isSalaryUnspecified
-                ? "Тохиролцоно"
-                : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`,
-              gpa: posting.minGpa ?? posting.gpa ?? "-",
-              vacancies: posting.vacancyCount ?? posting.vacancies ?? "-",
-              deadline: posting.deadline ?? "-",
-              majors: normalizeList(
-                posting.requiredMajor ??
-                  posting.requiredMajors ??
-                  posting.majors
-              ),
-              skills: normalizeList(
-                posting.requiredSkills ?? posting.skills
-              ),
-              languages: normalizeList(posting.languages),
-            }))
-          );
-        }
+        const postings = await response.json();
+        setJobs(Array.isArray(postings) ? postings.map(toStudentJob) : []);
       } catch (error) {
-        message.error(error.message || "Заруудыг ачаалж чадсангүй.");
+        console.error("Unable to load internship postings:", error);
+        setHasLoadError(true);
+      } finally {
+        setIsLoading(false);
       }
     };
+    loadJobs();
+  }, []);
 
-    loadPostings();
-    return () => {
-      cancelled = true;
-    };
-  }, [searchText]);
-
-  const filteredJobs = postings;
+  const filteredJobs = jobs.filter(
+    (job) =>
+      job.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   const handleApply = async (job) => {
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
+
     setSelectedJob(job);
     setOpen(true);
-    setIsLoadingDetail(true);
+    setIsDetailLoading(true);
+    setHasDetailLoadError(false);
 
     try {
-      const response = await fetch(`/api/postings/${job.id}`, {
-        cache: "no-store",
-      });
-      const data = await response.json().catch(() => ({}));
+      const response = await fetch(`${API_BASE}/api/postings/${job.id}`);
 
       if (!response.ok) {
-        throw new Error(data.message || "Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
+        throw new Error(`Unable to load posting detail: ${response.status}`);
       }
 
-      const detail = data.data ?? data.posting ?? data;
-      setSelectedJob({
-        ...job,
-        ...detail,
-        company:
-          detail.organizationName ??
-          detail.companyName ??
-          detail.company ??
-          detail.organization?.organizationName ??
-          detail.organization?.name ??
-          job.company,
-        location: detail.city ?? detail.location ?? job.location,
-        salary: detail.isSalaryUnspecified
-          ? "Тохиролцоно"
-          : detail.salaryMin != null || detail.salaryMax != null
-            ? `${detail.salaryMin ?? 0} - ${detail.salaryMax ?? 0} ₮`
-            : job.salary,
-        gpa: detail.minGpa ?? detail.gpa ?? job.gpa,
-        vacancies:
-          detail.vacancyCount ?? detail.vacancies ?? job.vacancies,
-        deadline: detail.deadline ?? job.deadline,
-        majors: normalizeList(
-          detail.requiredMajor ??
-            detail.requiredMajors ??
-            detail.majors ??
-            job.majors
-        ),
-        skills: normalizeList(
-          detail.requiredSkills ?? detail.skills ?? job.skills
-        ),
-        languages: normalizeList(detail.languages ?? job.languages),
-      });
+      const detail = await response.json();
+      setSelectedJob((currentJob) =>
+        currentJob?.id === job.id
+          ? withStudentJobDetail(currentJob, detail)
+          : currentJob
+      );
     } catch (error) {
-      message.error(error.message || "Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
+      console.error("Unable to load internship posting detail:", error);
+      if (detailRequestIdRef.current === requestId) {
+        setHasDetailLoadError(true);
+      }
     } finally {
-      setIsLoadingDetail(false);
+      if (detailRequestIdRef.current === requestId) {
+        setIsDetailLoading(false);
+      }
     }
   };
 
-  const handleSubmitApplication = async () => {
-    if (!coverLetter.trim()) {
-      message.warning("Өргөдлийн захидлаа оруулна уу.");
+  const handleApplicationSubmit = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Хүсэлт илгээхийн тулд эхлээд нэвтэрнэ үү.");
+      return;
+    }
+
+    if (!selectedJob) {
+      alert("Сонгосон зар олдсонгүй.");
       return;
     }
 
     setIsApplying(true);
 
     try {
-      const userResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
+      const idResponse = await fetch(`${API_BASE}/api/auth/myId`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      const userData = await userResponse.json().catch(() => ({}));
 
-      if (!userResponse.ok) {
-        throw new Error(userData.message || "Оюутны мэдээллийг авч чадсангүй.");
+      const idData = await parseResponseBody(idResponse);
+
+      if (!idResponse.ok) {
+        alert(idData?.message || "Оюутны ID авч чадсангүй.");
+        return;
       }
 
-      const user = userData.data ?? userData.user ?? userData;
-
-      if (user.role && user.role !== "STUDENT") {
-        throw new Error("Зөвхөн оюутны эрхээр хүсэлт илгээх боломжтой.");
-      }
-
-      let studentId = user.studentId ?? user.student?.id ?? "";
-
-      if (!studentId) {
-        const profileResponse = await fetch("/api/students/profile", {
-          credentials: "include",
-          cache: "no-store",
-        });
-        const profileData = await profileResponse.json().catch(() => ({}));
-
-        if (!profileResponse.ok) {
-          throw new Error(
-            profileData.message || "Оюутны профайлын ID-г авч чадсангүй."
-          );
+      const studentId = getStudentIdFromResponse(idData);
+      const payload = createApplicationPayload({
+        coverLetter,
+        studentId,
+      });
+      const applicationResponse = await fetch(
+        `${API_BASE}/api/applications/${selectedJob.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         }
+      );
+      const applicationData = await parseResponseBody(applicationResponse);
 
-        const student =
-          profileData.data ?? profileData.student ?? profileData.profile ?? profileData;
-        studentId = student.studentId ?? student.id ?? "";
+      if (!applicationResponse.ok) {
+        alert(applicationData?.message || "Хүсэлт илгээж чадсангүй.");
+        return;
       }
 
-      if (!studentId) {
-        throw new Error("Оюутны ID олдсонгүй.");
-      }
-
-      const response = await fetch("/api/applicatioins", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          coverLetter: coverLetter.trim(),
-          studentId,
-          internshipPostId: selectedJob.id,
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || "Хүсэлт илгээхэд алдаа гарлаа.");
-      }
-
-      message.success("Хүсэлт амжилттай илгээгдлээ.");
+      alert("Хүсэлт амжилттай илгээгдлээ.");
       setCoverLetter("");
       setOpen(false);
-      router.push("/pages/student/request");
     } catch (error) {
-      message.error(error.message || "Хүсэлт илгээхэд алдаа гарлаа.");
+      console.error("Application submission failed:", error);
+      alert("Хүсэлт илгээх үед алдаа гарлаа.");
     } finally {
       setIsApplying(false);
     }
   };
+
 
   return (
     <section className={styles.main}>
       <h1 className={styles.title}>Санал болгох ажил</h1>
 
       <div className={styles.grid}>
-        {filteredJobs.map((job) => (
-          <div key={job.id ?? `${job.company}-${job.title}`} className={styles.card}>
+        {!isLoading && !hasLoadError && filteredJobs.map((job) => (
+          <div key={job.id} className={styles.card}>
             <div
               className={styles.top}
-              style={{ backgroundColor: job.color }}
+              style={{ backgroundColor: "#ece9ff" }}
             >
               <Image
                 src={job.image}
@@ -433,12 +200,8 @@ const [coverLetter, setCoverLetter] = useState("");
               <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
-                {(job.majors.length > 0
-                  ? job.majors.slice(0, 3)
-                  : ["Мэргэжил заагаагүй"]
-                ).map((major) => (
-                  <span key={major}>{major}</span>
-                ))}
+                {job.industry && <span>{job.industry}</span>}
+                {job.status && <span>{job.status}</span>}
               </div>
             </div>
 
@@ -454,7 +217,19 @@ const [coverLetter, setCoverLetter] = useState("");
         ))}
       </div>
 
-      {filteredJobs.length === 0 && (
+        {isLoading && (
+          <h3 className={styles.empty}>
+            Ажлын зар ачаалж байна...
+          </h3>
+        )}
+
+        {hasLoadError && (
+          <h3 className={styles.empty}>
+            Ажлын зарыг ачаалж чадсангүй
+          </h3>
+        )}
+
+        {!isLoading && !hasLoadError && filteredJobs.length === 0 && (
         <h3 className={styles.empty}>
           Илэрц олдсонгүй
         </h3>
@@ -465,20 +240,29 @@ const [coverLetter, setCoverLetter] = useState("");
         footer={null}
         onCancel={() => setOpen(false)}
         width={800}
-        title={null}
-      >
+        title={null}>
         {selectedJob && (
           <>
             <Title level={3}>
               {selectedJob.title}
+
             </Title>
 
             <Text type="secondary">
               {selectedJob.company}
             </Text>
 
+            {isDetailLoading && (
+              <Text type="secondary">Дэлгэрэнгүй мэдээлэл ачаалж байна...</Text>
+            )}
+
+            {hasDetailLoadError && (
+              <Text type="danger">
+                Дэлгэрэнгүй мэдээллийг ачаалж чадсангүй.
+              </Text>
+            )}
+
             <Card
-              loading={isLoadingDetail}
               style={{
                 marginTop: 20,
                 marginBottom: 20,
@@ -492,7 +276,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.location}
+                     {selectedJob.location || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -502,7 +286,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.duration}
+                     {selectedJob.duration || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -512,7 +296,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.salary}
+                       {selectedJob.salary || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -522,7 +306,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.gpa}
+                     {selectedJob.gpa || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -532,9 +316,10 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.vacancies}
+                     {selectedJob.vacancies || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
+
 
                 <Col span={8}>
                   <Text type="secondary">
@@ -542,7 +327,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.deadline}
+                     {selectedJob.deadline || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
               </Row>
@@ -551,7 +336,7 @@ const [coverLetter, setCoverLetter] = useState("");
             <Title level={5}>Тайлбар</Title>
 
             <Text>
-              {selectedJob.description}
+               {selectedJob.description || "Мэдээлэл байхгүй"}
             </Text>
 
             <Divider />
@@ -568,48 +353,56 @@ const [coverLetter, setCoverLetter] = useState("");
                 marginBottom: 20,
               }}
             >
-              {selectedJob.majors.map((item) => (
-                <Tag key={item}>
-                  {item}
-                </Tag>
-              ))}
+               {selectedJob.majors.length > 0 ? (
+                 selectedJob.majors.map((item) => (
+                   <Tag key={item}>
+                     {item}
+                   </Tag>
+                 ))
+               ) : (
+                 <Text type="secondary">Мэдээлэл байхгүй</Text>
+               )}
             </div>
 
-            <Title level={5}>
-              Шаардлагатай чадвар
-            </Title>
+             {selectedJob.skills.length > 0 && (
+               <>
+                 <Title level={5}>Шаардлагатай чадвар</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.skills.map((item) => (
+                     <Tag color="blue" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.skills.map((item) => (
-                <Tag color="blue" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
-
-            <Title level={5}>Хэл</Title>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.languages.map((item) => (
-                <Tag color="green" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
+             {selectedJob.languages.length > 0 && (
+               <>
+                 <Title level={5}>Хэл</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.languages.map((item) => (
+                     <Tag color="green" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
             <Divider />
 
@@ -637,8 +430,9 @@ const [coverLetter, setCoverLetter] = useState("");
 
             <Button
               type="primary"
+              onClick={handleApplicationSubmit}
               loading={isApplying}
-              onClick={handleSubmitApplication}
+              disabled={isApplying}
             >
               Хүсэлт илгээх
             </Button>

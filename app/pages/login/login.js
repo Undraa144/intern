@@ -20,6 +20,22 @@ export default function Login() {
           password: values.password,
         }),
       });
+      const result = await response.json();
+
+      console.log(response.ok);
+      localStorage.setItem("token", result.token);
+      const token = result.token;
+      console.log("token", token);
+      const userData = await fetch(`${API_BASE}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data1 = await userData.json();
+        console.log(data1)
 
       const data = await response.json().catch(() => ({}));
 
@@ -33,7 +49,7 @@ export default function Login() {
         alert("Токен олдсонгүй.");
         return;
       }
-      
+
       const userData = await fetch("/api/auth/me", {
         method: "GET",
         headers: {
@@ -116,18 +132,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -159,12 +163,14 @@ export default function Login() {
                 <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
+
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values)}
+            onFinish={(values) => onFinish(values, "employer")}
           >
+
             <Form.Item
               name="email"
               rules={[
@@ -196,18 +202,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -223,28 +217,30 @@ export default function Login() {
               Log In
             </Button>
           </Form>
-        </div>
+      </div>
       ),
-    },
-    {
-      key: '3',
-      label: 'Teacher',
-      children: (
-        <div className={styles.form}>
+  },
+  {
+    key: '3',
+    label: 'Teacher',
+    children: (
+      <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Log In.</h2>
               <p>
-                Dont have any account?{" "}
+                Dont have  any account?{" "}
                 <Link href="/pages/signup">Sign Up</Link>
               </p>
             </div>
+
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values)}
+            onFinish={(values) => onFinish(values, "teacher")}
           >
+
             <Form.Item
               name="email"
               rules={[
@@ -276,18 +272,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me

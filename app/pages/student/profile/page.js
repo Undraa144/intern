@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 
 import {
   Layout,
@@ -15,7 +13,6 @@ import {
   Col,
   Typography,
   Rate,
-  message,
 } from "antd";
 
 import {
@@ -29,17 +26,24 @@ import {
 
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
+import { parseResponseBody } from "@/app/utils/response-body.mjs";
+import { updateStudentProfile } from "@/app/utils/student-profile-api.mjs";
+import { buildStudentProfilePayload } from "@/app/utils/student-profile-payload.mjs";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+const BASE_API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+
+function formatListForInput(value) {
+  return Array.isArray(value) ? value.join(", ") : value ?? "";
+}
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [reviews, setReviews] = useState([]);
-
+  const [averageRate,setAverageRate] = useState();
   const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
     fullName: "",
     major: "",
     university: "",
@@ -55,174 +59,101 @@ export default function ProfilePage() {
     teacherPhone: "",
   });
 
-  useEffect(() => {
-    const savedReviews =
-      JSON.parse(localStorage.getItem("studentReviews")) || [];
-
-    // Restore browser-persisted reviews after mounting.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReviews(savedReviews);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProfile() {
+  useEffect(message => {
+    const loadProfile = async () => {
       try {
-        const [profileResponse, userResponse] = await Promise.all([
-          fetch("/api/students/profile", {
-            credentials: "include",
-            cache: "no-store",
-          }),
-          fetch("/api/auth/me", {
-            credentials: "include",
-            cache: "no-store",
-          }),
-        ]);
-        const data = await profileResponse.json().catch(() => ({}));
-        const me = await userResponse.json().catch(() => ({}));
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${BASE_API}/api/students/profile`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await parseResponseBody(response);
 
-        if (!profileResponse.ok) {
-          throw new Error(data.message || "Профайл уншихад алдаа гарлаа");
+        if (!response.ok || !data) {
+          throw new Error("Profile request failed");
         }
 
-        if (!cancelled) {
-          const profileData = data.profile || data.student || data.data || data;
-          const userData =
-            profileData.user || profileData.student?.user || me.user || me;
-          const teacher = profileData.teacher || profileData.advisor || {};
-          const skills = profileData.skills || profileData.skillNames;
-          const languages = profileData.languages || profileData.languageNames;
-          const firstName =
-            profileData.firstName || userData.firstName || "";
-          const lastName = profileData.lastName || userData.lastName || "";
-          const combinedName = [firstName, lastName]
-            .filter(Boolean)
-            .join(" ");
-
-          setProfile((current) => ({
-            ...current,
-            firstName,
-            lastName,
-            fullName:
-              combinedName ||
-              profileData.fullName ||
-              profileData.name ||
-              userData.fullName ||
-              userData.name ||
-              "",
-            major:
-              profileData.major?.name ||
-              profileData.major ||
-              profileData.majorName ||
-              "",
-            university: profileData.university || "",
-            courseYear: profileData.courseYear ?? "",
-            phone:
-              profileData.phone ||
-              profileData.phoneNumber ||
-              userData.phone ||
-              userData.phoneNumber ||
-              "",
-            email: profileData.email || userData.email || "",
-            gpa: profileData.gpa ?? profileData.GPA ?? "",
-            bio:
-              profileData.shortBio ||
-              profileData.bio ||
-              profileData.description ||
-              "",
-            resume:
-              profileData.resume?.fileName ||
-              profileData.resume ||
-              profileData.resumeFileName ||
-              "",
-            skills: Array.isArray(skills)
-              ? skills.map((item) => item.name || item).join(", ")
-              : skills || "",
-            languages: Array.isArray(languages)
-              ? languages.map((item) => item.name || item).join(", ")
-              : languages || "",
-            teacherName:
-              profileData.teacherName ||
-              teacher.fullName ||
-              teacher.name ||
-              "",
-            teacherPhone:
-              profileData.teacherPhone ||
-              teacher.phone ||
-              teacher.phoneNumber ||
-              "",
-          }));
+        setProfile({
+          fullName: [data.firstName, data.lastName].filter(Boolean).join(" "),
+          major: data.major ?? "",
+          university: data.university ?? "",
+          courseYear: data.courseYear ?? "",
+          phone: data.phone ?? "",
+          email: data.email ?? "",
+          gpa: data.gpa ?? "",
+          bio: data.shortBio ?? data.bio ?? "",
+          resume: data.resume ?? "",
+          skills: formatListForInput(data.skills),
+          languages: formatListForInput(data.languages),
+          teacherName: data.teacherFirstName ?? "",
+          teacherPhone: data.teacherPhone ?? "",
+        });
+      } catch {
+        alert("Хэрэглэгчийн мэдээллийг авч чадсангүй. Дахин оролдоно уу.");
+      }
+    };
+    const loadReview = async () =>{
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${BASE_API}/api/evaluations/student`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await parseResponseBody(response);
+        if (!response.ok || !data) {
+          throw new Error("review хүсэлт алдааа гарлаа");
         }
-      } catch (error) {
-        if (!cancelled) message.error(error.message);
+        setReviews(data);
+      }
+      catch (e){
+        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа ",e);
       }
     }
+    const loadAvgRate = async () =>{
+      try {
+        const token = localStorage.getItem("token");
+        const response = fetch(`${BASE_API}/api/students/avg`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        const data = await parseResponseBody(response);
+        console.log(data.toString());
 
+      }
+      catch (e){
+        alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
+      }
+    }
+    loadAvgRate();
+    loadReview();
     loadProfile();
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
-  const averageRate =
-    reviews.length > 0
-      ? (
-        reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
-      ).toFixed(1)
-      : 0;
+
 
   const handleSave = async () => {
+    let payload;
+
     try {
-      const userResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      const userData = await userResponse.json().catch(() => ({}));
-
-      if (!userResponse.ok) {
-        throw new Error(userData.message || "Нэвтрэх хугацаа дууссан байна.");
-      }
-
-      const user = userData.data ?? userData.user ?? userData;
-
-      if (user.role && user.role !== "STUDENT") {
-        throw new Error("Зөвхөн оюутны эрхээр профайл засах боломжтой.");
-      }
-
-      const response = await fetch("/api/students/profile", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: profile.firstName.trim(),
-          lastName: profile.lastName.trim(),
-          major: profile.major,
-          university: profile.university,
-          courseYear: Number(profile.courseYear),
-          gpa: Number(profile.gpa),
-          phone: Number(profile.phone),
-          shortBio: profile.bio,
-          skills: profile.skills.split(",").map((item) => item.trim()).filter(Boolean),
-          languages: profile.languages.split(",").map((item) => item.trim()).filter(Boolean),
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || "Профайл шинэчлэхэд алдаа гарлаа");
-      }
-
-      const fullName = [profile.firstName, profile.lastName]
-        .filter(Boolean)
-        .join(" ");
-      const updatedProfile = { ...profile, fullName };
-      setProfile(updatedProfile);
-      localStorage.setItem("studentProfile", JSON.stringify(updatedProfile));
-      setIsEditing(false);
-      message.success("Профайл амжилттай шинэчлэгдлээ");
+      payload = buildStudentProfilePayload(profile);
     } catch (error) {
-      message.error(error.message);
+      alert(error.message);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      await updateStudentProfile({
+        baseApi: BASE_API,
+        token,
+        payload,
+      });
+
+      setIsEditing(false);
+      alert("Профайлын мэдээлэл амжилттай хадгалагдлаа.");
+    } catch {
+      alert("Профайлын мэдээллийг хадгалж чадсангүй. Дахин оролдоно уу.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -235,11 +166,7 @@ export default function ProfilePage() {
           <Card className={styles.leftCard}>
             <div className={styles.avatarSection}>
               <Avatar size={100}>
-                {profile.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)}
+                {profile.fullName}
               </Avatar>
 
               <Title level={3}>{profile.fullName}</Title>
@@ -285,7 +212,7 @@ export default function ProfilePage() {
               <Title level={4}>Хувийн мэдээлэл</Title>
 
               {isEditing ? (
-                <Button type="primary" onClick={handleSave}>
+                <Button type="primary" loading={isSaving} onClick={handleSave}>
                   Хадгалах
                 </Button>
               ) : (
@@ -299,37 +226,22 @@ export default function ProfilePage() {
             </div>
 
             <Row gutter={16}>
-              <Col span={8}>
-                <label>Нэр</label>
+              <Col span={12}>
+                <label>Овог, нэр</label>
 
                 <Input
                   disabled={!isEditing}
-                  value={profile.firstName}
+                  value={profile.fullName}
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      firstName: e.target.value,
+                      fullName: e.target.value,
                     })
                   }
                 />
               </Col>
 
-              <Col span={8}>
-                <label>Овог</label>
-
-                <Input
-                  disabled={!isEditing}
-                  value={profile.lastName}
-                  onChange={(e) =>
-                    setProfile({
-                      ...profile,
-                      lastName: e.target.value,
-                    })
-                  }
-                />
-              </Col>
-
-              <Col span={8}>
+              <Col span={12}>
                 <label>Мэргэжил</label>
 
                 <Input
@@ -347,33 +259,10 @@ export default function ProfilePage() {
 
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
-                <label>Сургууль</label>
-                <Input
-                  disabled={!isEditing}
-                  value={profile.university}
-                  onChange={(e) =>
-                    setProfile({ ...profile, university: e.target.value })
-                  }
-                />
-              </Col>
-              <Col span={12}>
-                <label>Курс</label>
-                <Input
-                  type="number"
-                  disabled={!isEditing}
-                  value={profile.courseYear}
-                  onChange={(e) =>
-                    setProfile({ ...profile, courseYear: e.target.value })
-                  }
-                />
-              </Col>
-            </Row>
-
-            <Row gutter={16} style={{ marginTop: 16 }}>
-              <Col span={12}>
                 <label>Утас</label>
 
                 <Input
+                  inputMode="numeric"
                   disabled={!isEditing}
                   value={profile.phone}
                   onChange={(e) =>
@@ -389,6 +278,10 @@ export default function ProfilePage() {
                 <label>GPA</label>
 
                 <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.01"
                   disabled={!isEditing}
                   value={profile.gpa}
                   onChange={(e) =>
@@ -401,45 +294,56 @@ export default function ProfilePage() {
               </Col>
             </Row>
 
+            <Row gutter={16} style={{ marginTop: 16 }}>
+              <Col span={12}>
+                <label>Сургууль</label>
+
+                <Input
+                  disabled={!isEditing}
+                  value={profile.university}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      university: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+
+              <Col span={12}>
+                <label>Курс</label>
+
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  disabled={!isEditing}
+                  value={profile.courseYear}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      courseYear: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+
             <div className={styles.bio}>
               <label>Имэйл</label>
 
               <Input
-                disabled={!isEditing}
+                disabled
                 value={profile.email}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    email: e.target.value,
-                  })
-                }
               />
             </div>
 
             <div className={styles.bio}>
               <label>Resume (PDF)</label>
 
-              {isEditing ? (
-                <Upload
-                  beforeUpload={() => false}
-                  maxCount={1}
-                  accept=".pdf"
-                  onChange={({ fileList }) => {
-                    if (fileList.length > 0) {
-                      setProfile({
-                        ...profile,
-                        resume: fileList[0].name,
-                      });
-                    }
-                  }}
-                >
-                  <Button icon={<UploadOutlined />}>Resume сонгох</Button>
-                </Upload>
-              ) : (
-                <p>
-                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
-                </p>
-              )}
+              <p>
+                <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+              </p>
             </div>
 
             <div className={styles.bio}>
@@ -511,35 +415,35 @@ export default function ProfilePage() {
         </div>
 
         <Card
-          title={
+        title={
             <span>
-              Үнэлгээ, сэтгэгдэл{" "}
-              {reviews.length > 0 && (
+            Үнэлгээ, сэтгэгдэл{" "}
+            {reviews.length > 0 && (
                 <Tag color="gold" style={{ marginLeft: 10 }}>
-                  Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
                 </Tag>
-              )}
+            )}
             </span>
-          }
-          style={{ marginTop: 30 }}
+        }
+        style={{ marginTop: 30 }}
         >
-          {reviews.length === 0 ? (
+        {reviews.length === 0 ? (
             <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
-          ) : (
+        ) : (
             reviews.map((item, index) => (
-              <Card key={index} size="small" style={{ marginBottom: 15 }}>
-                <Tag color={item.from === "Багш" ? "blue" : "green"}>
-                  {item.from}
+            <Card key={index} size="small" style={{ marginBottom: 15 }}>
+                <Tag>
+                  {item.organizationName}
                 </Tag>
                 <div style={{ margin: "10px 0" }}>
-                  <Rate disabled value={item.rate} />
+                <Rate disabled value={item.score} />
                 </div>
-                <Text>{item.comment}</Text>
+                {/*<Text>{item.comment}</Text>*/}
                 <br />
-                <Text type="secondary">{item.date}</Text>
-              </Card>
+                {/*<Text type="secondary">{item.date}</Text>*/}
+            </Card>
             ))
-          )}
+        )}
         </Card>
       </Content>
     </MainLayout>
