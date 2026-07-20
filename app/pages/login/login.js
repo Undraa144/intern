@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./login.module.scss";
+import { getAuthRoleTabKey } from "../../utils/auth-role-tabs.mjs";
 
 export default function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
+    const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
   const onFinish = async (values) => {
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -20,34 +25,34 @@ export default function Login() {
           password: values.password,
         }),
       });
+      const result = await response.json();
 
-      const data = await response.json().catch(() => ({}));
+      console.log(response.ok);
+      document.cookie = "token="+result.token+"; path=/";
+      const token = result.token;
+      console.log("token", token);
+      const userData = await fetch(`${API_BASE}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data1 = await userData.json();
+        console.log(data1)
+
+
 
       if (!response.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
-      const loginSucceeded = data.success;
-      if (!loginSucceeded) {
-        alert("Токен олдсонгүй.");
-        return;
-      }
-      
-      const userData = await fetch("/api/auth/me", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-        cache: "no-store",
-      });
-
       if (!userData.ok) {
         alert("Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
         return;
       }
-
-      const data1 = await userData.json();
       console.log(data1);
 
       if (data1.role === "STUDENT") {
@@ -76,7 +81,7 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                <Link href="/pages/signup?role=student">Sign Up</Link>
               </p>
             </div>
           </div>
@@ -116,18 +121,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -156,15 +149,17 @@ export default function Login() {
               <h2>Log In.</h2>
               <p>
                 Dont have any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                <Link href="/pages/signup?role=employer">Sign Up</Link>
               </p>
             </div>
+
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values)}
+            onFinish={(values) => onFinish(values, "employer")}
           >
+
             <Form.Item
               name="email"
               rules={[
@@ -196,18 +191,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -223,28 +206,30 @@ export default function Login() {
               Log In
             </Button>
           </Form>
-        </div>
+      </div>
       ),
-    },
-    {
-      key: '3',
-      label: 'Teacher',
-      children: (
-        <div className={styles.form}>
+  },
+  {
+    key: '3',
+    label: 'Teacher',
+    children: (
+      <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Log In.</h2>
               <p>
-                Dont have any account?{" "}
-                <Link href="/pages/signup">Sign Up</Link>
+                Dont have  any account?{" "}
+                <Link href="/pages/signup?role=teacher">Sign Up</Link>
               </p>
             </div>
+
           </div>
 
           <Form
             layout="vertical"
-            onFinish={(values) => onFinish(values)}
+            onFinish={(values) => onFinish(values, "teacher")}
           >
+
             <Form.Item
               name="email"
               rules={[
@@ -276,18 +261,6 @@ export default function Login() {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              rules={[
-                {
-                  validator: (_, value) =>
-                    value
-                      ? Promise.resolve()
-                      : Promise.reject(
-                          new Error(
-                            "Remember me"
-                          )
-                        ),
-                },
-              ]}
             >
               <Checkbox>
                 Remember me
@@ -314,7 +287,7 @@ export default function Login() {
 
       <div className={styles.right}>
         <Tabs
-          defaultActiveKey="1"
+          defaultActiveKey={activeTabKey}
           centered
           items={items}
         />

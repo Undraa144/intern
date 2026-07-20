@@ -28,249 +28,72 @@ import {
   Spin,
 } from "antd";
 import MainLayout from "@/app/MainLayout";
+import {parseResponseBody} from "@/app/utils/response-body.mjs";
 
 const {  Content,  } = Layout;
 const { Title, Text } = Typography;
 
 export default function RequestPage() {
   const [requests, setRequests] = useState([]);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [approvedCount, setApprovedCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   useEffect(() => {
-    let isActive = true;
-
-    async function loadRequests() {
+    const API_BASE = process.env.BASE || "http://localhost:8088";
+    //status тоог авах холболтыг функц
+    const loadStatus = async () => {
       try {
-        const [response, postingsResponse] = await Promise.all([
-          fetch("/api/students/application", {
-            credentials: "include",
-            cache: "no-store",
-          }),
-          fetch("/api/postings", { cache: "no-store" }),
-        ]);
-        const result = await response.json().catch(() => ({}));
-        const postingsResult = await postingsResponse.json().catch(() => ([]));
-
-        if (!response.ok) {
-          throw new Error(result.message || "Хүсэлтийн жагсаалтыг авч чадсангүй.");
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
         }
 
-        const applications = Array.isArray(result)
-          ? result
-          : result.data ?? result.applications ?? result.content ?? [];
-        const postings = Array.isArray(postingsResult)
-          ? postingsResult
-          : postingsResult.data ??
-            postingsResult.postings ??
-            postingsResult.content ??
-            [];
-        const postingsById = new Map(
-          (Array.isArray(postings) ? postings : []).map((posting) => [
-            String(posting.internshipPostId ?? posting.postingId ?? posting.id),
-            posting,
-          ])
-        );
+        const token = getCookie("token");
 
-        const requestsWithPosting = await Promise.all(
-          (Array.isArray(applications) ? applications : []).map(
-            async (application) => {
-              const listPosting = postingsById.get(
-                String(
-                  application.internshipPostId ??
-                    application.postingId ??
-                    application.internshipPost?.internshipPostId ??
-                    application.posting?.internshipPostId
-                )
-              );
+        const response = await fetch(`${API_BASE}/api/applications/status`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await parseResponseBody(response);
 
-              if (application.applicationId == null) {
-                return {
-                  ...application,
-                  posting: listPosting ?? application.posting,
-                  title: listPosting?.title ?? application.title,
-                  company:
-                    listPosting?.organizationName ?? application.company,
-                };
-              }
-
-              try {
-                const detailResponse = await fetch(
-                  `/api/students/application/${encodeURIComponent(application.applicationId)}`,
-                  { cache: "no-store" }
-                );
-                const detailResult = await detailResponse.json().catch(() => ({}));
-
-                if (!detailResponse.ok) {
-                  return {
-                    ...application,
-                    posting: listPosting ?? application.posting,
-                    title: listPosting?.title ?? application.title,
-                    company:
-                      listPosting?.organizationName ?? application.company,
-                  };
-                }
-
-                const detail =
-                  detailResult.data ?? detailResult.application ?? detailResult;
-
-                return {
-                  ...application,
-                  ...detail,
-                  posting: listPosting ?? detail.posting ?? application.posting,
-                  title:
-                    detail.title ??
-                    detail.internshipTitle ??
-                    detail.internshipPostTitle ??
-                    detail.postTitle ??
-                    detail.internshipPost?.title ??
-                    detail.posting?.title ??
-                    listPosting?.title,
-                  company:
-                    detail.organizationName ??
-                    detail.companyName ??
-                    detail.company ??
-                    detail.internshipPost?.organizationName ??
-                    detail.internshipPost?.organization?.organizationName ??
-                    detail.posting?.organizationName ??
-                    listPosting?.organizationName,
-                };
-              } catch {
-                return {
-                  ...application,
-                  posting: listPosting ?? application.posting,
-                  title: listPosting?.title ?? application.title,
-                  company:
-                    listPosting?.organizationName ?? application.company,
-                };
-              }
-            }
-          )
-        );
-
-        if (isActive) {
-          setRequests(requestsWithPosting);
-        }
+        setApprovedCount(data.accepted);
+        setRejectedCount(data.rejected);
+        setPendingCount(data.pending);
       } catch (error) {
-        console.error("Student applications fetch failed:", error);
-        if (isActive) setRequests([]);
+        alert("status авах холболт дээр алдаа гарлаа "+error);
       }
-    }
-
-    loadRequests();
-    return () => {
-      isActive = false;
     };
-  }, []);
+    //application авах холболт
+    const loadApp = async () => {
+      try {
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
 
-  const getStatus = (item) => {
-    const status = String(
-      item.status ?? item.applicationStatus ?? "pending"
-    ).toLowerCase();
-
-    if (["approved", "accepted"].includes(status)) return "approved";
-    if (["rejected", "declined"].includes(status)) return "rejected";
-    return "pending";
-  };
-
-  const formatDate = (value) => {
-    if (!value) return "-";
-
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString("mn-MN");
-  };
-
-  const normalizeList = (value) => {
-    if (!value) return [];
-    if (Array.isArray(value)) return value.filter(Boolean);
-    return String(value)
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  };
-
-  const getPostingId = (item) =>
-    item?.internshipPostId ??
-    item?.postingId ??
-    item?.internshipPost?.internshipPostId ??
-    item?.internshipPost?.id ??
-    item?.posting?.internshipPostId ??
-    item?.posting?.id;
-
-  const openRequestDetail = async (item) => {
-    setSelectedRequest(item);
-    setIsDetailLoading(true);
-
-    try {
-      const internshipPostId = item.internshipPostId;
-      const response = await fetch(
-        `/api/students/application/${encodeURIComponent(item.applicationId)}`,
-        { cache: "no-store" }
-      );
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(result.message || "Хүсэлтийн дэлгэрэнгүйг авч чадсангүй.");
+        const token = getCookie("token");
+        const response = await fetch(`${API_BASE}/api/applications`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await parseResponseBody(response);
+        setRequests(data);
       }
-
-      const detail = result.data ?? result.application ?? result;
-      const application = {
-        ...item,
-        ...detail,
-        posting: {
-          ...(item.internshipPost ?? {}),
-          ...(item.posting ?? {}),
-          ...(detail.internshipPost ?? {}),
-          ...(detail.posting ?? {}),
-        },
-      };
-      const postingId = internshipPostId ?? getPostingId(detail) ?? getPostingId(item);
-
-      if (postingId == null) {
-        setSelectedRequest(application);
-        return;
+      catch (e) {
+        console.log("application авах холболт дээр алдаа гарлаа ",e);
       }
-
-      const postingResponse = await fetch(
-        `/api/postings/${encodeURIComponent(postingId)}`,
-        { cache: "no-store" }
-      );
-      const postingResult = await postingResponse.json().catch(() => ({}));
-
-      if (!postingResponse.ok) {
-        setSelectedRequest(application);
-        return;
-      }
-
-      const posting = postingResult.data ?? postingResult.posting ?? postingResult;
-      setSelectedRequest({
-        ...application,
-        internshipPostId: postingId,
-        posting: {
-          ...application.posting,
-          ...posting,
-        },
-      });
-    } catch (error) {
-      console.error("Student application detail fetch failed:", error);
-    } finally {
-      setIsDetailLoading(false);
     }
-  };
+    loadStatus();
+    loadApp();
 
-  const approvedCount = requests.filter(
-    (item) => getStatus(item) === "approved"
-  ).length;
-
-  const pendingCount = requests.filter(
-    (item) => getStatus(item) === "pending"
-  ).length;
-
-  const rejectedCount = requests.filter(
-    (item) => getStatus(item) === "rejected"
-  ).length;
-
-
+  }, []);
 
   return (
     <MainLayout role="student">
@@ -316,79 +139,29 @@ export default function RequestPage() {
             </div>
           </div>
 
-          {requests.map((item, index) => (
+          {requests.map(( item, index) => (
             <Card
               key={item.id ?? item.applicationId ?? index}
               className={styles.requestCard}
             >
               <div className={styles.cardHeader}>
                 <div>
-                  <h3>
-                    <button
-                      type="button"
-                      className={styles.titleButton}
-                      onClick={() => openRequestDetail(item)}
-                    >
-                      {item.title ??
-                        item.internshipTitle ??
-                        item.internshipPostTitle ??
-                        item.postTitle ??
-                        item.internshipPost?.title ??
-                        item.posting?.title ??
-                        `Дадлагын зар #${item.internshipPostId}`}
-                    </button>
-                  </h3>
-                  <Link
-                    className={styles.companyLink}
-                    href={{
-                      pathname: "/pages/student/company",
-                      query: {
-                        organizationId:
-                          item.posting?.organizationId ??
-                          item.internshipPost?.organizationId ??
-                          item.organizationId ??
-                          "",
-                        organizationName:
-                          item.company ??
-                          item.organizationName ??
-                          item.internshipPost?.organizationName ??
-                          item.internshipPost?.organization?.organizationName ??
-                          item.posting?.organizationName ??
-                          "",
-                        industry:
-                          item.posting?.industry ??
-                          item.internshipPost?.industry ??
-                          item.industry ??
-                          "",
-                        city:
-                          item.posting?.city ??
-                          item.internshipPost?.city ??
-                          item.city ??
-                          "",
-                      },
-                    }}
-                  >
-                    {item.company ??
-                      item.organizationName ??
-                      item.internshipPost?.organizationName ??
-                      item.internshipPost?.organization?.organizationName ??
-                      item.posting?.organizationName ??
-                      `Хүсэлт #${item.applicationId}`}
-                  </Link>
+                  <h3>{item.postTitle}</h3>
+                  <p>{item.company}</p>
                 </div>
 
                 <Tag
                   color={
-                    getStatus(item) === "approved"
+                    item.status === "ACCEPTED"
                       ? "success"
-                      : getStatus(item) === "rejected"
+                      : item.status === "REJECTED"
                       ? "error"
                       : "warning"
                   }
                 >
-                  {getStatus(item) === "approved"
+                  {item.status === "ACCEPTED"
                     ? "Зөвшөөрөгдсөн"
-                    : getStatus(item) === "rejected"
+                    : item.status === "REJECTED"
                     ? "Татгалзсан"
                     : "Хүлээгдэж буй"}
                 </Tag>
@@ -400,12 +173,7 @@ export default function RequestPage() {
 
               <div className={styles.dateRow}>
                 <span>
-                  Илгээсэн: {formatDate(
-                    item.submittedAt ??
-                      item.sentDate ??
-                      item.appliedAt ??
-                      item.createdAt
-                  )}
+                  Илгээсэн: {item.submittedAt}
                 </span>
               </div>
             </Card>

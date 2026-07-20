@@ -2,7 +2,14 @@ const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8088";
 
 export async function refreshAccessToken() {
-  const token = localStorage.getItem("token");
+  function getCookie(name) {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith(name + "="))
+        ?.split("=")[1];
+  }
+
+  const token = getCookie("token");
 
   if (!token) {
     throw new Error("Token not found");
@@ -41,7 +48,14 @@ export async function refreshAccessToken() {
 }
 
 export async function fetchWithAuth(url, options = {}) {
-  let token = localStorage.getItem("token");
+  function getCookie(name) {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith(name + "="))
+        ?.split("=")[1];
+  }
+
+  let token = getCookie("token");
 
   let response = await fetch(url, {
     ...options,
@@ -67,7 +81,14 @@ export async function fetchWithAuth(url, options = {}) {
 }
 
 export function getToken() {
-  return localStorage.getItem("token");
+  function getCookie(name) {
+    return document.cookie
+        .split("; ")
+        .find(row => row.startsWith(name + "="))
+        ?.split("=")[1];
+  }
+
+  return getCookie("token");
 }
 
 export function saveToken(token) {
