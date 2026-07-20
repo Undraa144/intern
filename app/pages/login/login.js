@@ -50,20 +50,10 @@ export default function Login() {
         return;
       }
 
-      const userData = await fetch("/api/auth/me", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-        cache: "no-store",
-      });
-
       if (!userData.ok) {
         alert("Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
         return;
       }
-
-      const data1 = await userData.json();
       console.log(data1);
 
       if (data1.role === "STUDENT") {

@@ -19,10 +19,8 @@ import {
 } from "antd";
 
 import {
-  EditOutlined,
   MailOutlined,
   PhoneOutlined,
-  UserOutlined,
   FileTextOutlined,
   StarFilled,
 } from "@ant-design/icons";
@@ -61,6 +59,7 @@ useEffect(() => {
   if (savedProfile) {
     const data = JSON.parse(savedProfile);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile({
       fullName:
         data.fullName ||
@@ -106,6 +105,7 @@ useEffect(() => {
   const savedReviews =
     JSON.parse(localStorage.getItem("studentReviews")) || [];
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   setReviews(savedReviews);
 }, []);
 

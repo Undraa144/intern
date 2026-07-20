@@ -12,12 +12,10 @@ import {
 
 import {
   Layout,
-  theme,
   Card,
   Tag,
 } from "antd";
 import MainLayout from "@/app/MainLayout";
-import {toStudentJob} from "@/app/utils/student-job.mjs";
 import {parseResponseBody} from "@/app/utils/response-body.mjs";
 
 const {  Content,  } = Layout;
@@ -46,7 +44,7 @@ export default function RequestPage() {
         setRejectedCount(data.rejected);
         setPendingCount(data.pending);
       } catch (error) {
-        alert("status авах холболт дээр алдаа гарлаа ", error);
+        alert("status авах холболт дээр алдаа гарлаа "+error);
       }
     };
     //application авах холболт

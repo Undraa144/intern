@@ -14,7 +14,6 @@ import {
 
 import {
   Layout,
-  Menu,
   Button,
   Card,
   Tag,
@@ -118,7 +117,7 @@ export default function ReportPage() {
       });
 
       if (!authResponse.ok) {
-        throw new Error("Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.");
+        alert("Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.");
       }
 
       if (!editingReport) {
@@ -137,9 +136,9 @@ export default function ReportPage() {
         if (!reportResponse.ok) {
           const data = await reportResponse.json().catch(() => ({}));
           if (reportResponse.status === 401) {
-            throw new Error(data.message || "Дахин нэвтэрнэ үү");
+            alert(data.message || "Дахин нэвтэрнэ үү");
           }
-          throw new Error(
+          alert(
             data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа"
           );
         }
@@ -158,11 +157,11 @@ export default function ReportPage() {
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
           if (response.status === 401) {
-            throw new Error(
+            alert(
               "Тайлан үүссэн боловч файл оруулах эрхийг backend зөвшөөрсөнгүй."
             );
           }
-          throw new Error(data.message || "Тайлангийн файл илгээхэд алдаа гарлаа");
+          alert(data.message || "Тайлангийн файл илгээхэд алдаа гарлаа");
         }
       }
 

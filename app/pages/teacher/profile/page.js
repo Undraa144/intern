@@ -93,7 +93,7 @@ useEffect(() => {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Багшийн профайлыг ачаалж чадсангүй.");
+        alert(data.message || "Багшийн профайлыг ачаалж чадсангүй.");
       }
 
       const teacher = data.data ?? data.teacher ?? data.profile ?? data;
@@ -157,7 +157,7 @@ const handleSave = async () => {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.message || "Багшийн профайлыг хадгалж чадсангүй.");
+      alert(data.message || "Багшийн профайлыг хадгалж чадсангүй.");
     }
 
     localStorage.setItem("studentProfile", JSON.stringify(profile));

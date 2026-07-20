@@ -58,7 +58,7 @@ export default function SHome({ searchText = "" }) {
         const response = await fetch(`${API_BASE}/api/postings`);
 
         if (!response.ok) {
-          throw new Error(`алдааа: ${response.status}`);
+          alert(`алдааа: ${response.status}`);
         }
 
         const postings = await response.json();
@@ -92,7 +92,7 @@ export default function SHome({ searchText = "" }) {
       const response = await fetch(`${API_BASE}/api/postings/${job.id}`);
 
       if (!response.ok) {
-        throw new Error(`Unable to load posting detail: ${response.status}`);
+        alert(`Unable to load posting detail: ${response.status}`);
       }
 
       const detail = await response.json();

@@ -69,7 +69,7 @@ export default function ProfilePage() {
         const data = await parseResponseBody(response);
 
         if (!response.ok || !data) {
-          throw new Error("Profile request failed");
+          alert("Profile request failed");
         }
 
         setProfile({
@@ -99,12 +99,12 @@ export default function ProfilePage() {
         });
         const data = await parseResponseBody(response);
         if (!response.ok || !data) {
-          throw new Error("review хүсэлт алдааа гарлаа");
+          alert("review хүсэлт алдааа гарлаа");
         }
         setReviews(data);
       }
       catch (e){
-        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа ",e);
+        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
       }
     }
     const loadAvgRate = async () =>{

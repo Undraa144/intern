@@ -11,12 +11,11 @@ import {
   Space,
   Rate,
   Typography,
-  Tag,
 } from "antd";
 
 import {
   PlusOutlined,
-  EditOutlined,
+
   DeleteOutlined,
 } from "@ant-design/icons";
 
@@ -106,7 +105,7 @@ export default function Student() {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(data.message || "Оюутан нэмэхэд алдаа гарлаа.");
+          alert(data.message || "Оюутан нэмэхэд алдаа гарлаа.");
         }
 
         const student = data.data ?? data.student ?? data;

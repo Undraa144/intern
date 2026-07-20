@@ -73,6 +73,7 @@ const [commentText, setCommentText] = useState("");
       JSON.parse(localStorage.getItem("reports")) || [];
 
     if (savedReports.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReports(savedReports);
     }
   }, []);
