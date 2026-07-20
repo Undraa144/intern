@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 
 import {
   Layout,
@@ -28,62 +26,73 @@ import {
 
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
+import { parseResponseBody } from "@/app/utils/response-body.mjs";
+import { updateStudentProfile } from "@/app/utils/student-profile-api.mjs";
+import { buildStudentProfilePayload } from "@/app/utils/student-profile-payload.mjs";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+const BASE_API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+
+function formatListForInput(value) {
+  return Array.isArray(value) ? value.join(", ") : value ?? "";
+}
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [reviews, setReviews] = useState([]);
 
   const [profile, setProfile] = useState({
-    fullName: "Батболдын Тэмүүлэн",
-    major: "Програм хангамж",
-    phone: "99112233",
-    email: "temuulen@example.mn",
-    gpa: "3.65",
-    bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
-    resume: "Resume.pdf",
-    skills: "React, Next.js, JavaScript, Python, SQL",
-    languages: "Монгол, English",
+    fullName: "",
+    major: "",
+    university: "",
+    courseYear: "",
+    phone: "",
+    email: "",
+    gpa: "",
+    bio: "",
+    resume: "",
+    skills: "",
+    languages: "",
     teacherName: "",
     teacherPhone: "",
   });
 
-useEffect(() => {
-  const reviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
-
-  setReviews(reviews);
-}, []);
-
   useEffect(() => {
-  const savedReviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${BASE_API}/api/students/profile`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await parseResponseBody(response);
 
-  setReviews(savedReviews);
-}, []);
+        if (!response.ok || !data) {
+          throw new Error("Profile request failed");
+        }
 
-  useEffect(() => {
-    const savedProfile = localStorage.getItem("studentProfile");
+        setProfile({
+          fullName: [data.firstName, data.lastName].filter(Boolean).join(" "),
+          major: data.major ?? "",
+          university: data.university ?? "",
+          courseYear: data.courseYear ?? "",
+          phone: data.phone ?? "",
+          email: data.email ?? "",
+          gpa: data.gpa ?? "",
+          bio: data.shortBio ?? data.bio ?? "",
+          resume: data.resume ?? "",
+          skills: formatListForInput(data.skills),
+          languages: formatListForInput(data.languages),
+          teacherName: data.teacherFirstName ?? "",
+          teacherPhone: data.teacherPhone ?? "",
+        });
+      } catch {
+        alert("Хэрэглэгчийн мэдээллийг авч чадсангүй. Дахин оролдоно уу.");
+      }
+    };
 
-    if (savedProfile) {
-      const data = JSON.parse(savedProfile);
-
-      setProfile({
-        fullName: data.fullName || "Батболдын Тэмүүлэн",
-        major: data.major || "Програм хангамж",
-        phone: data.phone || "99112233",
-        email: data.email || "temuulen@example.mn",
-        gpa: data.gpa || "3.65",
-        bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
-        resume: data.resume || "Resume.pdf",
-        skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
-        languages: data.languages || "Монгол, English",
-        teacherName: data.teacherName || "",
-        teacherPhone: data.teacherPhone || "",
-      });
-    }
+    loadProfile();
   }, []);
 
 const averageRate =
@@ -93,9 +102,33 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 ).toFixed(1)
 : 0;
 
-  const handleSave = () => {
-    localStorage.setItem("studentProfile", JSON.stringify(profile));
-    setIsEditing(false);
+  const handleSave = async () => {
+    let payload;
+
+    try {
+      payload = buildStudentProfilePayload(profile);
+    } catch (error) {
+      alert(error.message);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      await updateStudentProfile({
+        baseApi: BASE_API,
+        token,
+        payload,
+      });
+
+      setIsEditing(false);
+      alert("Профайлын мэдээлэл амжилттай хадгалагдлаа.");
+    } catch {
+      alert("Профайлын мэдээллийг хадгалж чадсангүй. Дахин оролдоно уу.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -107,11 +140,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
           <Card className={styles.leftCard}>
             <div className={styles.avatarSection}>
               <Avatar size={100}>
-                {profile.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)}
+                {profile.fullName}
               </Avatar>
 
               <Title level={3}>{profile.fullName}</Title>
@@ -143,11 +172,11 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               </Text>
 
               <p>
-                <UserOutlined /> {profile.teacherName || "Бат"}
+                <UserOutlined /> {profile.teacherName}
               </p>
 
               <p>
-                <PhoneOutlined /> {profile.teacherPhone || "99887766"}
+                <PhoneOutlined /> {profile.teacherPhone}
               </p>
             </div>
           </Card>
@@ -157,7 +186,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               <Title level={4}>Хувийн мэдээлэл</Title>
 
               {isEditing ? (
-                <Button type="primary" onClick={handleSave}>
+                <Button type="primary" loading={isSaving} onClick={handleSave}>
                   Хадгалах
                 </Button>
               ) : (
@@ -165,14 +194,14 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   icon={<EditOutlined />}
                   onClick={() => setIsEditing(true)}
                 >
-                  Заах
+                  Засах
                 </Button>
               )}
             </div>
 
             <Row gutter={16}>
               <Col span={12}>
-                <label>Бүтэн нэр</label>
+                <label>Овог, нэр</label>
 
                 <Input
                   disabled={!isEditing}
@@ -207,6 +236,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                 <label>Утас</label>
 
                 <Input
+                  inputMode="numeric"
                   disabled={!isEditing}
                   value={profile.phone}
                   onChange={(e) =>
@@ -222,6 +252,10 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                 <label>GPA</label>
 
                 <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.01"
                   disabled={!isEditing}
                   value={profile.gpa}
                   onChange={(e) =>
@@ -234,45 +268,56 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               </Col>
             </Row>
 
+            <Row gutter={16} style={{ marginTop: 16 }}>
+              <Col span={12}>
+                <label>Сургууль</label>
+
+                <Input
+                  disabled={!isEditing}
+                  value={profile.university}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      university: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+
+              <Col span={12}>
+                <label>Курс</label>
+
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  disabled={!isEditing}
+                  value={profile.courseYear}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      courseYear: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+
             <div className={styles.bio}>
               <label>Имэйл</label>
 
               <Input
-                disabled={!isEditing}
+                disabled
                 value={profile.email}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    email: e.target.value,
-                  })
-                }
               />
             </div>
 
             <div className={styles.bio}>
               <label>Resume (PDF)</label>
 
-              {isEditing ? (
-                <Upload
-                  beforeUpload={() => false}
-                  maxCount={1}
-                  accept=".pdf"
-                  onChange={({ fileList }) => {
-                    if (fileList.length > 0) {
-                      setProfile({
-                        ...profile,
-                        resume: fileList[0].name,
-                      });
-                    }
-                  }}
-                >
-                  <Button icon={<UploadOutlined />}>Resume сонгох</Button>
-                </Upload>
-              ) : (
-                <p>
-                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
-                </p>
-              )}
+              <p>
+                <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+              </p>
             </div>
 
             <div className={styles.bio}>
