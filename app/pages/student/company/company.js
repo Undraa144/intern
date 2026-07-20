@@ -28,6 +28,17 @@ import styles from "./company.module.scss"
 const { TextArea } = Input;
 const { Title, Text } = Typography
 
+const defaultProfile = {
+  companyName: "ДатаТех Солюшнс",
+  industry: "Мэдээллийн технологи",
+  rate: 5,
+  website: "datatech.mn",
+  address: "Сүхбаатар дүүрэг, 1-р хороо",
+  description:
+    "Бид санхүү, банкны салбарт зориулсан програм хангамжийн шийдэл нийлүүлдэг.",
+  verified: true,
+};
+
 export default function Profile() {
 
 
@@ -48,16 +59,7 @@ const [comment, setComment] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
 
-const [profile, setProfile] = useState({
-  companyName: "ДатаТех Солюшнс",
-  industry: "Мэдээллийн технологи",
-  rate: 5,
-  website: "datatech.mn",
-  address: "Сүхбаатар дүүрэг, 1-р хороо",
-  description:
-    "Бид санхүү, банкны салбарт зориулсан програм хангамжийн шийдэл нийлүүлдэг.",
-  verified: true,
-});
+const [profile, setProfile] = useState(defaultProfile);
 
 const job = {
   title: "Frontend Developer Intern",
@@ -85,29 +87,31 @@ const job = {
 };
 
 useEffect(() => {
-  const savedReviews =
-    JSON.parse(localStorage.getItem("companyReviews")) || [];
+  let isActive = true;
 
-  setReviews(savedReviews);
-}, []);
+  queueMicrotask(() => {
+    if (!isActive) return;
 
-useEffect(() => {
-  const savedProfile =
-    localStorage.getItem("studentProfile");
+    const savedReviews = JSON.parse(localStorage.getItem("companyReviews")) || [];
+    const savedProfileValue = localStorage.getItem("studentProfile");
+    const saved = savedProfileValue ? JSON.parse(savedProfileValue) : {};
+    const searchParams = new URLSearchParams(window.location.search);
 
-  if (savedProfile) {
-    const data = JSON.parse(savedProfile);
-
+    setReviews(savedReviews);
     setProfile({
-  companyName: data.companyName || "ДатаТех Солюшнс",
-  industry: data.industry || "Мэдээллийн технологи",
-  rate: data.rate || 5,
-  website: data.website || "datatech.mn",
-  address: data.address || "",
-  description: data.description ||"Бид санхүү, банкны салбарт зориулсан програм хангамжийн шийдэл нийлүүлдэг.",
-  verified: data.verified ?? true,
-});
-  }
+      ...defaultProfile,
+      ...saved,
+      companyName:
+        searchParams.get("organizationName") || saved.companyName || defaultProfile.companyName,
+      industry:
+        searchParams.get("industry") || saved.industry || defaultProfile.industry,
+      address: searchParams.get("city") || saved.address || defaultProfile.address,
+    });
+  });
+
+  return () => {
+    isActive = false;
+  };
 }, []);
 
 const averageRate =

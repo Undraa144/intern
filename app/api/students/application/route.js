@@ -18,14 +18,9 @@ function normalizeToken(value) {
     .trim();
 }
 
-function createApplication(token, body, path = "applicatioins") {
-  return fetch(`${API_BASE}/api/${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body,
+function getApplications(token) {
+  return fetch(`${API_BASE}/api/students/application`, {
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
 }
@@ -38,11 +33,10 @@ async function refreshAccessToken(token) {
     cache: "no-store",
   });
   const data = await response.json().catch(() => ({}));
-
   return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+export async function GET() {
   const cookieStore = await cookies();
   let token = normalizeToken(cookieStore.get("auth_token")?.value);
 
@@ -51,20 +45,7 @@ export async function POST(request) {
   }
 
   try {
-    const body = await request.text();
-    let response = await createApplication(token, body);
-
-    if (response.status === 401 || response.status === 404) {
-      const correctlySpelledResponse = await createApplication(
-        token,
-        body,
-        "applications"
-      );
-
-      if (correctlySpelledResponse.status !== 404) {
-        response = correctlySpelledResponse;
-      }
-    }
+    let response = await getApplications(token);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
@@ -79,23 +60,10 @@ export async function POST(request) {
 
       token = refreshedToken;
       cookieStore.set("auth_token", token, cookieOptions);
-      response = await createApplication(token, body);
-
-      if (response.status === 401 || response.status === 404) {
-        const correctlySpelledResponse = await createApplication(
-          token,
-          body,
-          "applications"
-        );
-
-        if (correctlySpelledResponse.status !== 404) {
-          response = correctlySpelledResponse;
-        }
-      }
+      response = await getApplications(token);
     }
 
     const responseBody = await response.text();
-
     return new Response(responseBody, {
       status: response.status,
       headers: {
@@ -103,9 +71,9 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("Application creation failed:", error);
+    console.error("Student applications fetch failed:", error);
     return Response.json(
-      { message: "Хүсэлтийг серверт илгээж чадсангүй." },
+      { message: "Хүсэлтийн жагсаалтыг серверээс авч чадсангүй." },
       { status: 502 }
     );
   }

@@ -234,10 +234,14 @@ const [coverLetter, setCoverLetter] = useState("");
           setPostings(
             list.map((posting, index) => ({
               ...posting,
-              id:
-                posting.id ??
-                posting.postingId ??
+              internshipPostId:
                 posting.internshipPostId ??
+                posting.postingId ??
+                posting.id,
+              id:
+                posting.internshipPostId ??
+                posting.postingId ??
+                posting.id ??
                 index,
               company:
                 posting.organizationName ??
@@ -286,7 +290,8 @@ const [coverLetter, setCoverLetter] = useState("");
     setIsLoadingDetail(true);
 
     try {
-      const response = await fetch(`/api/postings/${job.id}`, {
+      const internshipPostId = job.internshipPostId ?? job.id;
+      const response = await fetch(`/api/postings/${internshipPostId}`, {
         cache: "no-store",
       });
       const data = await response.json().catch(() => ({}));
@@ -299,6 +304,11 @@ const [coverLetter, setCoverLetter] = useState("");
       setSelectedJob({
         ...job,
         ...detail,
+        internshipPostId:
+          detail.internshipPostId ??
+          detail.postingId ??
+          job.internshipPostId ??
+          job.id,
         company:
           detail.organizationName ??
           detail.companyName ??
@@ -383,16 +393,24 @@ const [coverLetter, setCoverLetter] = useState("");
         throw new Error("Оюутны ID олдсонгүй.");
       }
 
-      const response = await fetch("/api/applicatioins", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          coverLetter: coverLetter.trim(),
-          studentId,
-          internshipPostId: selectedJob.id,
-        }),
-      });
+      const internshipPostId = selectedJob.internshipPostId ?? selectedJob.id;
+
+      if (internshipPostId == null) {
+        throw new Error("Дадлагын зарын ID олдсонгүй.");
+      }
+
+      const response = await fetch(
+        `/api/applications/${encodeURIComponent(internshipPostId)}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            coverLetter: coverLetter.trim(),
+            studentId,
+          }),
+        }
+      );
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
