@@ -42,7 +42,7 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [reviews, setReviews] = useState([]);
-
+  const [averageRate,setAverageRate] = useState();
   const [profile, setProfile] = useState({
     fullName: "",
     major: "",
@@ -59,7 +59,7 @@ export default function ProfilePage() {
     teacherPhone: "",
   });
 
-  useEffect(() => {
+  useEffect(message => {
     const loadProfile = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -91,16 +91,42 @@ export default function ProfilePage() {
         alert("Хэрэглэгчийн мэдээллийг авч чадсангүй. Дахин оролдоно уу.");
       }
     };
+    const loadReview = async () =>{
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`${BASE_API}/api/evaluations/student`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await parseResponseBody(response);
+        if (!response.ok || !data) {
+          throw new Error("review хүсэлт алдааа гарлаа");
+        }
+        setReviews(data);
+      }
+      catch (e){
+        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа ",e);
+      }
+    }
+    const loadAvgRate = async () =>{
+      try {
+        const token = localStorage.getItem("token");
+        const response = fetch(`${BASE_API}/api/students/avg`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        const data = await parseResponseBody(response);
+        console.log(data.toString());
 
+      }
+      catch (e){
+        alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
+      }
+    }
+    loadAvgRate();
+    loadReview();
     loadProfile();
   }, []);
 
-const averageRate =
-reviews.length > 0
-? (
-reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
-).toFixed(1)
-: 0;
+
 
   const handleSave = async () => {
     let payload;
@@ -406,15 +432,15 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
         ) : (
             reviews.map((item, index) => (
             <Card key={index} size="small" style={{ marginBottom: 15 }}>
-                <Tag color={item.from === "Багш" ? "blue" : "green"}>
-                {item.from}
+                <Tag>
+                  {item.organizationName}
                 </Tag>
                 <div style={{ margin: "10px 0" }}>
-                <Rate disabled value={item.rate} />
+                <Rate disabled value={item.score} />
                 </div>
-                <Text>{item.comment}</Text>
+                {/*<Text>{item.comment}</Text>*/}
                 <br />
-                <Text type="secondary">{item.date}</Text>
+                {/*<Text type="secondary">{item.date}</Text>*/}
             </Card>
             ))
         )}
