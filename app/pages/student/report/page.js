@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import styles from "./page.module.scss";
 
 import {
-  FilePdfOutlined,
+  FileWordOutlined,
   PlusOutlined,
   UploadOutlined,
   EditOutlined,
@@ -14,7 +14,6 @@ import {
 
 import {
   Layout,
-  Menu,
   Button,
   Card,
   Tag,
@@ -36,6 +35,7 @@ export default function ReportPage() {
   const [open, setOpen] = useState(false);
   const [editingReport, setEditingReport] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form] = Form.useForm();
 
   const [reports, setReports] = useState([
@@ -65,6 +65,8 @@ export default function ReportPage() {
       JSON.parse(localStorage.getItem("reports")) || [];
 
     if (savedReports.length > 0) {
+      // Restore client-only persisted data after the page has mounted.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setReports(savedReports);
     }
   }, []);
@@ -103,41 +105,104 @@ export default function ReportPage() {
     setDeleteTarget(null);
   };
 
-  const handleSubmit = (values) => {
-    if (editingReport) {
-      const updatedReports = reports.map((report) =>
-        report.id === editingReport.id
-          ? {
-              ...report,
-              title: values.title,
-              description: values.description,
-              file:
-                values.file?.fileList?.[0]?.name || report.file,
-            }
-          : report
-      );
+  const handleSubmit = async (values) => {
+    const selectedFile = values.file?.[0]?.originFileObj;
 
-      saveReports(updatedReports);
-      message.success("Тайлан шинэчлэгдлээ");
-    } else {
-      const newReport = {
-        id: Date.now(),
-        title: values.title,
-        description: values.description,
-        file: values.file?.fileList?.[0]?.name || "report.pdf",
-        date: new Date().toISOString().split("T")[0],
-        status: "review",
-      };
+    setIsSubmitting(true);
 
-      const updatedReports = [...reports, newReport];
+    try {
+      const authResponse = await fetch("/api/auth/me", {
+        credentials: "include",
+        cache: "no-store",
+      });
 
-      saveReports(updatedReports);
-      message.success("Тайлан амжилттай илгээгдлээ");
+      if (!authResponse.ok) {
+        alert("Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.");
+      }
+
+      if (!editingReport) {
+        const reportResponse = await fetch("/api/reports", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: values.title,
+            description: values.description,
+          }),
+        });
+
+        if (!reportResponse.ok) {
+          const data = await reportResponse.json().catch(() => ({}));
+          if (reportResponse.status === 401) {
+            alert(data.message || "Дахин нэвтэрнэ үү");
+          }
+          alert(
+            data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа"
+          );
+        }
+      }
+
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("file", selectedFile, selectedFile.name);
+
+        const response = await fetch("/api/reports/file", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          if (response.status === 401) {
+            alert(
+              "Тайлан үүссэн боловч файл оруулах эрхийг backend зөвшөөрсөнгүй."
+            );
+          }
+          alert(data.message || "Тайлангийн файл илгээхэд алдаа гарлаа");
+        }
+      }
+
+      if (editingReport) {
+        const updatedReports = reports.map((report) =>
+          report.id === editingReport.id
+            ? {
+                ...report,
+                title: values.title,
+                description: values.description,
+                file: values.file?.[0]?.name || report.file,
+              }
+            : report
+        );
+
+        saveReports(updatedReports);
+        message.success("Тайлан шинэчлэгдлээ");
+      } else {
+        const newReport = {
+          id: Date.now(),
+          title: values.title,
+          description: values.description,
+          file: selectedFile?.name || "",
+          date: new Date().toISOString().split("T")[0],
+          status: "review",
+        };
+
+        const updatedReports = [...reports, newReport];
+
+        saveReports(updatedReports);
+        message.success("Тайлан амжилттай илгээгдлээ");
+      }
+
+      form.resetFields();
+      setEditingReport(null);
+      setOpen(false);
+    } catch (error) {
+      message.error(error.message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    form.resetFields();
-    setEditingReport(null);
-    setOpen(false);
   };
 
   return (
@@ -209,7 +274,7 @@ export default function ReportPage() {
 
             <div>
               <a href="#">
-                <FilePdfOutlined /> {report.file}
+                <FileWordOutlined /> {report.file}
               </a>
             </div>
 
@@ -264,18 +329,32 @@ export default function ReportPage() {
             >
               <Input.TextArea rows={5} />
             </Form.Item>
-
             <Form.Item
-              label="PDF файл"
+              label="DOCX файл"
               name="file"
               valuePropName="fileList"
+              getValueFromEvent={(event) => event?.fileList || []}
+              rules={
+                editingReport
+                  ? []
+                  : [{ required: true, message: "DOCX файл сонгоно уу" }]
+              }
             >
-              <Upload beforeUpload={() => false} accept=".pdf" maxCount={1}>
-                <Button icon={<UploadOutlined />}>PDF сонгох</Button>
+              <Upload
+                beforeUpload={() => false}
+                accept=".docx"
+                maxCount={1}
+              >
+                <Button icon={<UploadOutlined />}>DOCX сонгох</Button>
               </Upload>
             </Form.Item>
 
-            <Button type="primary" htmlType="submit" block>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={isSubmitting}
+              block
+            >
               {editingReport ? "Хадгалах" : "Тайлан илгээх"}
             </Button>
           </Form>

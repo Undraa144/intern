@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Button,
@@ -40,13 +40,51 @@ export default function Ad({ searchText = "" }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [form] = Form.useForm();
+
+  const loadMyPostings = useCallback(async () => {
+    const response = await fetch("/api/postings/my", {
+      credentials: "include",
+      cache: "no-store",
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.message || "Миний заруудыг ачаалж чадсангүй.");
+    }
+
+    const payload = Array.isArray(data)
+      ? data
+      : data.content ?? data.postings ?? data.data ?? [];
+    const postings = Array.isArray(payload) ? payload : [];
+
+    setJobs(
+      postings.map((posting) => ({
+        ...posting,
+        id: posting.id ?? posting.postingId,
+        company: posting.company ?? posting.companyName ?? "",
+        majors: posting.requiredMajors ?? posting.majors ?? [],
+        skills: posting.requiredSkills ?? posting.skills ?? [],
+        gpa: posting.minGpa ?? posting.gpa,
+        positions: posting.vacancyCount ?? posting.positions,
+        vacancies: posting.vacancyCount ?? posting.vacancies,
+        views: posting.views ?? posting.viewCount ?? 0,
+        salary:
+          posting.salary ??
+          (posting.isSalaryUnspecified
+            ? "Тохиролцоно"
+            : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`),
+      }))
+    );
+  }, []);
 
   useEffect(() => {
     const savedJobs = localStorage.getItem("jobs");
 
     if (savedJobs) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setJobs(JSON.parse(savedJobs));
     } else {
       const demoJobs = [
@@ -225,6 +263,13 @@ export default function Ad({ searchText = "" }) {
     }
   }, []);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadMyPostings().catch((error) => {
+      message.error(error.message || "Миний заруудыг ачаалж чадсангүй.");
+    });
+  }, [loadMyPostings]);
+
   const saveJobs = (data) => {
     setJobs(data);
     localStorage.setItem("jobs", JSON.stringify(data));
@@ -242,15 +287,46 @@ export default function Ad({ searchText = "" }) {
     setFormOpen(true);
   };
 
-  const handleDelete = (id) => {
-    const updatedJobs = jobs.filter((job) => job.id !== id);
+  const handleDelete = async (job) => {
+    try {
+      const response = await fetch(`/api/postings/${job.id}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          description: job.description,
+          requiredMajors: toList(job.majors),
+          minGpa: Number(job.gpa),
+          requiredSkills: toList(job.skills),
+          salaryMin: Number(job.salaryMin),
+          salaryMax: Number(job.salaryMax),
+          vacancyCount: Number(job.positions),
+          deadline: job.deadline,
+        }),
+      });
+      const responseText = await response.text();
 
-    saveJobs(updatedJobs);
-    message.success("Амжилттай устлаа");
+      if (!response.ok) {
+        let errorMessage = responseText;
+        try {
+          const data = JSON.parse(responseText);
+          errorMessage = data.message || data.error || responseText;
+        } catch {
+          // The backend may return plain text.
+        }
+        throw new Error(errorMessage || "Зар устгахад алдаа гарлаа.");
+      }
+
+      await loadMyPostings();
+      message.success("Амжилттай устлаа");
+    } catch (error) {
+      message.error(error.message || "Зар устгахад алдаа гарлаа.");
+    }
   };
 
-  const handleSave = () => {
-    form.validateFields().then((values) => {
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
       let updatedJobs = [...jobs];
 
       if (editingJob) {
@@ -260,23 +336,49 @@ export default function Ad({ searchText = "" }) {
 
         message.success("Зар шинэчлэгдлээ");
       } else {
-        updatedJobs.unshift({
-          id: Date.now(),
-          views: 0,
-          status: "Идэвхтэй",
-          majors: [],
-          languages: [],
-          ...values,
+        setIsSaving(true);
+        const response = await fetch("/api/postings", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: values.title,
+            description: values.description,
+            requiredMajors: toList(values.majors),
+            minGpa: Number(values.gpa),
+            requiredSkills: toList(values.skills),
+            salaryMin: Number(values.salary),
+            salaryMax: Number(values.salary),
+            vacancyCount: Number(values.positions),
+            deadline: values.deadline?.includes("T")
+              ? values.deadline
+              : `${values.deadline}T23:59:59`,
+          }),
         });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({}));
+          throw new Error(data.message || "Зар нэмэхэд алдаа гарлаа.");
+        }
 
         message.success("Шинэ зар нэмэгдлээ");
       }
 
-      saveJobs(updatedJobs);
+      if (editingJob) {
+        saveJobs(updatedJobs);
+      } else {
+        await loadMyPostings();
+      }
 
       setFormOpen(false);
       form.resetFields();
-    });
+    } catch (error) {
+      if (!error?.errorFields) {
+        message.error(error.message || "Зар хадгалахад алдаа гарлаа.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleView = (job) => {
@@ -328,7 +430,9 @@ export default function Ad({ searchText = "" }) {
             <div>
               <h3>
                 {job.title}
-                <Tag color="success">{job.status}</Tag>
+                <Tag color="success">
+                  {job.status === "OPEN" ? "Идэвхтэй" : job.status}
+                </Tag>
               </h3>
 
               <p>{job.description}</p>
@@ -347,7 +451,7 @@ export default function Ad({ searchText = "" }) {
 
               <DeleteOutlined
                 className={styles.delete}
-                onClick={() => handleDelete(job.id)}
+                onClick={() => handleDelete(job)}
               />
             </Space>
           </div>
@@ -500,6 +604,7 @@ export default function Ad({ searchText = "" }) {
         title={editingJob ? "Зар засах" : "Шинэ зар нэмэх"}
         onCancel={() => setFormOpen(false)}
         onOk={handleSave}
+        confirmLoading={isSaving}
         okText="Хадгалах"
         cancelText="Болих"
       >

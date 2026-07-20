@@ -1,37 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {Tabs} from 'antd';
-import { Form, Input, Button, Checkbox, Select } from "antd";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Tabs, Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./login.module.scss";
+import { getAuthRoleTabKey } from "../../utils/auth-role-tabs.mjs";
 
 export default function Login() {
-  const [form] = Form.useForm();
-    const router = useRouter();
-
-const onFinish = async (values, role) => {
-    if (role === "student") {
-      router.push("/pages/student/home");
-    }
-
-    if (role === "employer") {
-      router.push("/pages/employer/home");
-    }
-
-    if (role === "teacher") {
-      router.push("/pages/teacher/home");
-    }
-  };
-
- /* const API_BASE = process.env.BASE || "http://localhost:8088"
-
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
+    const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
   const onFinish = async (values) => {
     try {
-      const response = await fetch(
-        `${API_BASE}/api/auth/login`, 
-        {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,58 +25,71 @@ const onFinish = async (values, role) => {
           password: values.password,
         }),
       });
+      const result = await response.json();
 
-      const data = await response.json();
-      console.log(data);
+      console.log(response.ok);
+      document.cookie = "token="+result.token+"; path=/";
+      const token = result.token;
+      console.log("token", token);
+      const userData = await fetch(`${API_BASE}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data1 = await userData.json();
+        console.log(data1)
+
+
 
       if (!response.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
+      if (!userData.ok) {
+        alert("Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
+        return;
       }
+      console.log(data1);
 
-      if (data.role === "STUDENT") {
+      if (data1.role === "STUDENT") {
         router.push("/pages/student/home");
-      } else if (data.role === "TEACHER") {
+      } else if (data1.role === "TEACHER") {
         router.push("/pages/teacher/home");
-      } else if (data.role === "COMPANY") {
+      } else if (data1.role === "COMPANY") {
         router.push("/pages/employer/home");
+      } else {
+        alert("Хэрэглэгчийн role олдсонгүй");
       }
     } catch (error) {
       console.error(error);
       alert("Сервертэй холбогдож чадсангүй.");
     }
   };
-  */
-
 
   const items = [
   {
     key: '1',
-    label: 'Оюутан',
+    label: 'Student',
     children: (
       <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Нэвтрэх.</h2>
               <p>
-                Бүртгэл үүсгэх үү ? {" "}
+                Бүртгэл үүсгэх үү ?{" "}
                 <Link href="/pages/signup">Бүртгүүлэх</Link>
               </p>
             </div>
-
           </div>
 
           <Form
-            form={form}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "student")}
-
+            onFinish={(values) => onFinish(values)}
           >
-
             <Form.Item
               name="email"
               rules={[
@@ -120,10 +117,10 @@ const onFinish = async (values, role) => {
             >
               <Input.Password placeholder="Нууц үг" />
             </Form.Item>
+
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
             >
               <Checkbox>
                 Сануулах
@@ -144,14 +141,14 @@ const onFinish = async (values, role) => {
   },
   {
     key: '2',
-    label: 'Ажилтан',
+    label: 'Employer',
     children: (
       <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Нэвтрэх.</h2>
               <p>
-                Бүртгэл үүсгэх үү ? {" "}
+                Бүртгэл үүсгэх үү ?{" "}
                 <Link href="/pages/signup">Бүртгүүлэх</Link>
               </p>
             </div>
@@ -159,7 +156,6 @@ const onFinish = async (values, role) => {
           </div>
 
           <Form
-            form={form}
             layout="vertical"
             onFinish={(values) => onFinish(values, "student")}
 
@@ -195,7 +191,6 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
             >
               <Checkbox>
                 Сануулах
@@ -223,7 +218,7 @@ const onFinish = async (values, role) => {
             <div>
               <h2>Нэвтрэх.</h2>
               <p>
-                Бүртгэл үүсгэх үү ? {" "}
+                Бүртгэл үүсгэх үү ?{" "}
                 <Link href="/pages/signup">Бүртгүүлэх</Link>
               </p>
             </div>
@@ -231,7 +226,6 @@ const onFinish = async (values, role) => {
           </div>
 
           <Form
-            form={form}
             layout="vertical"
             onFinish={(values) => onFinish(values, "student")}
 
@@ -267,7 +261,6 @@ const onFinish = async (values, role) => {
             <Form.Item
               name="agreement"
               valuePropName="checked"
-              
             >
               <Checkbox>
                 Сануулах
@@ -283,10 +276,10 @@ const onFinish = async (values, role) => {
               Нэвтрэх
             </Button>
           </Form>
-      </div>
-    ),
-  },
-];
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className={styles.main}>
@@ -294,11 +287,13 @@ const onFinish = async (values, role) => {
 
       <div className={styles.right}>
         <Tabs
-        defaultActiveKey="1"
-        centered
-        items={items}
+          defaultActiveKey={activeTabKey}
+          centered
+          items={items}
         />
       </div>
     </div>
   );
 }
+
+

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 
 import {
   Layout,
@@ -28,14 +26,19 @@ import {
 
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
+import { parseResponseBody } from "@/app/utils/response-body.mjs";
+import { updateStudentProfile } from "@/app/utils/student-profile-api.mjs";
+import { buildStudentProfilePayload } from "@/app/utils/student-profile-payload.mjs";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+const BASE_API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [reviews, setReviews] = useState([]);
-
+  const [averageRate, setAverageRate] = useState();
   const [profile, setProfile] = useState({
     fullName: "Батболдын Тэмүүлэн",
     major: "Програм хангамж",
@@ -51,53 +54,83 @@ export default function ProfilePage() {
     teacherPhone: "",
   });
 
-useEffect(() => {
-  const reviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
-
-  setReviews(reviews);
-}, []);
-
   useEffect(() => {
-  const savedReviews =
-    JSON.parse(localStorage.getItem("studentReviews")) || [];
+    const loadProfile = async () => {
+      try {
+        function getCookie(name) {
+          return document.cookie
+            .split("; ")
+            .find((row) => row.startsWith(name + "="))
+            ?.split("=")[1];
+        }
 
-  setReviews(savedReviews);
-}, []);
+        const token = getCookie("token");
+        const response = await fetch(`${BASE_API}/api/students/profile`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await parseResponseBody(response);
 
-  useEffect(() => {
-    const savedProfile = localStorage.getItem("studentProfile");
+        if (!response.ok || !data) {
+          alert("Profile request failed");
+          return;
+        }
 
-    if (savedProfile) {
-      const data = JSON.parse(savedProfile);
+        setProfile({
+          fullName: data.fullName || "Батболдын Тэмүүлэн",
+          major: data.major || "Програм хангамж",
+          phone: data.phone || "99112233",
+          email: data.email || "temuulen@example.mn",
+          school: data.school || "",
+          gpa: data.gpa || "3.65",
+          bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
+          resume: data.resume || "Resume.pdf",
+          skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
+          languages: data.languages || "Монгол, English",
+          teacherName: data.teacherName || "",
+          teacherPhone: data.teacherPhone || "",
+        });
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      }
+    };
 
-      setProfile({
-        fullName: data.fullName || "Батболдын Тэмүүлэн",
-        major: data.major || "Програм хангамж",
-        phone: data.phone || "99112233",
-        email: data.email || "temuulen@example.mn",
-        school: data.school || "МУИС",
-        gpa: data.gpa || "3.65",
-        bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
-        resume: data.resume || "Resume.pdf",
-        skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
-        languages: data.languages || "Монгол, English",
-        teacherName: data.teacherName || "",
-        teacherPhone: data.teacherPhone || "",
-      });
-    }
+    loadProfile();
   }, []);
 
-const averageRate =
-reviews.length > 0
-? (
-reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
-).toFixed(1)
-: 0;
+  const handleSave = async () => {
+    let payload;
 
-  const handleSave = () => {
-    localStorage.setItem("studentProfile", JSON.stringify(profile));
-    setIsEditing(false);
+    try {
+      payload = buildStudentProfilePayload(profile);
+    } catch (error) {
+      alert(error.message);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      function getCookie(name) {
+        return document.cookie
+          .split("; ")
+          .find((row) => row.startsWith(name + "="))
+          ?.split("=")[1];
+      }
+
+      const token = getCookie("token");
+      await updateStudentProfile({
+        baseApi: BASE_API,
+        token,
+        payload,
+      });
+
+      setIsEditing(false);
+      alert("Профайлын мэдээлэл амжилттай хадгалагдлаа.");
+    } catch {
+      alert("Профайлын мэдээллийг хадгалж чадсангүй. Дахин оролдоно уу.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -108,21 +141,12 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
         <div className={styles.profileGrid}>
           <Card className={styles.leftCard}>
             <div className={styles.avatarSection}>
-              <Avatar size={100}>
-                {profile.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)}
-              </Avatar>
-
+              <Avatar size={100}>{profile.fullName}</Avatar>
               <Title level={3}>{profile.fullName}</Title>
-
               <Text type="secondary">{profile.major}</Text>
-              
 
               <div className={styles.tags}>
-                <Tag color="green">Сургууль :  {profile.school}</Tag>
+                <Tag color="green">Сургууль : {profile.school}</Tag>
                 <Tag color="blue">GPA {profile.gpa}</Tag>
               </div>
             </div>
@@ -131,11 +155,9 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               <p>
                 <MailOutlined /> {profile.email}
               </p>
-
               <p>
                 <PhoneOutlined /> {profile.phone}
               </p>
-
               <p>
                 <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
               </p>
@@ -145,13 +167,11 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               <Text strong style={{ display: "block", marginBottom: 8 }}>
                 Хариуцсан багш
               </Text>
-
               <p>
-                <UserOutlined /> {profile.teacherName || "Бат"}
+                <UserOutlined /> {profile.teacherName}
               </p>
-
               <p>
-                <PhoneOutlined /> {profile.teacherPhone || "99887766"}
+                <PhoneOutlined /> {profile.teacherPhone}
               </p>
             </div>
           </Card>
@@ -159,16 +179,12 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
           <Card className={styles.rightCard}>
             <div className={styles.profileHeader}>
               <Title level={4}>Хувийн мэдээлэл</Title>
-
               {isEditing ? (
-                <Button type="primary" onClick={handleSave}>
+                <Button type="primary" loading={isSaving} onClick={handleSave}>
                   Хадгалах
                 </Button>
               ) : (
-                <Button
-                  icon={<EditOutlined />}
-                  onClick={() => setIsEditing(true)}
-                >
+                <Button icon={<EditOutlined />} onClick={() => setIsEditing(true)}>
                   Засах
                 </Button>
               )}
@@ -176,8 +192,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 
             <Row gutter={16}>
               <Col span={12}>
-                <label>Бүтэн нэр</label>
-
+                <label>Овог, нэр</label>
                 <Input
                   disabled={!isEditing}
                   value={profile.fullName}
@@ -192,7 +207,6 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 
               <Col span={12}>
                 <label>Мэргэжил</label>
-
                 <Input
                   disabled={!isEditing}
                   value={profile.major}
@@ -209,8 +223,8 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
                 <label>Утас</label>
-
                 <Input
+                  inputMode="numeric"
                   disabled={!isEditing}
                   value={profile.phone}
                   onChange={(e) =>
@@ -223,23 +237,27 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
               </Col>
               <Col span={12}>
                 <label>Сургууль</label>
-
                 <Input
                   disabled={!isEditing}
                   value={profile.school}
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      gpa: e.target.value,
+                      school: e.target.value, // Fixed from gpa to school
                     })
                   }
                 />
               </Col>
+            </Row>
 
+            <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
                 <label>GPA</label>
-
                 <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.01"
                   disabled={!isEditing}
                   value={profile.gpa}
                   onChange={(e) =>
@@ -250,53 +268,21 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   }
                 />
               </Col>
-
               <Col span={12}>
-              <label>Имэйл</label>
-
-              <Input
-                disabled={!isEditing}
-                value={profile.email}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    email: e.target.value,
-                  })
-                }
-              />
-              </Col> 
-
+                <label>Имэйл</label>
+                <Input disabled value={profile.email} />
+              </Col>
             </Row>
 
             <div className={styles.bio}>
               <label>Resume (PDF)</label>
-
-              {isEditing ? (
-                <Upload
-                  beforeUpload={() => false}
-                  maxCount={1}
-                  accept=".pdf"
-                  onChange={({ fileList }) => {
-                    if (fileList.length > 0) {
-                      setProfile({
-                        ...profile,
-                        resume: fileList[0].name,
-                      });
-                    }
-                  }}
-                >
-                  <Button icon={<UploadOutlined />}>Resume сонгох</Button>
-                </Upload>
-              ) : (
-                <p>
-                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
-                </p>
-              )}
+              <p>
+                <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+              </p>
             </div>
 
             <div className={styles.bio}>
               <label>Товч танилцуулга</label>
-
               <Input.TextArea
                 rows={4}
                 disabled={!isEditing}
@@ -312,7 +298,6 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 
             <div className={styles.skillSection}>
               <label>Чадварууд</label>
-
               {isEditing ? (
                 <Input
                   value={profile.skills || ""}
@@ -337,7 +322,6 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 
             <div className={styles.skillSection}>
               <label>Хэл</label>
-
               {isEditing ? (
                 <Input
                   value={profile.languages || ""}
@@ -363,35 +347,31 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
         </div>
 
         <Card
-        title={
+          title={
             <span>
-            Үнэлгээ, сэтгэгдэл{" "}
-            {reviews.length > 0 && (
+              Үнэлгээ, сэтгэгдэл{" "}
+              {reviews.length > 0 && (
                 <Tag color="gold" style={{ marginLeft: 10 }}>
-                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                  Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
                 </Tag>
-            )}
+              )}
             </span>
-        }
-        style={{ marginTop: 30 }}
+          }
+          style={{ marginTop: 30 }}
         >
-        {reviews.length === 0 ? (
+          {reviews.length === 0 ? (
             <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
-        ) : (
+          ) : (
             reviews.map((item, index) => (
-            <Card key={index} size="small" style={{ marginBottom: 15 }}>
-                <Tag color={item.from === "Багш" ? "blue" : "green"}>
-                {item.from}
-                </Tag>
+              <Card key={index} size="small" style={{ marginBottom: 15 }}>
+                <Tag>{item.organizationName}</Tag>
                 <div style={{ margin: "10px 0" }}>
-                <Rate disabled value={item.rate} />
+                  <Rate disabled value={item.score} />
                 </div>
-                <Text>{item.comment}</Text>
                 <br />
-                <Text type="secondary">{item.date}</Text>
-            </Card>
+              </Card>
             ))
-        )}
+          )}
         </Card>
       </Content>
     </MainLayout>

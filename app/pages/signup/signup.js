@@ -1,34 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs } from 'antd';
-import { Form, Input, Button, Checkbox, Select } from "antd";
+import { Form, Input, Button, Checkbox } from "antd";
 
 import styles from "./signup.module.scss";
-import { responsiveArray } from "antd/es/_util/responsiveObserver";
+import { parseResponseBody } from "../../utils/response-body.mjs";
+import { getAuthRoleTabKey } from "../../utils/auth-role-tabs.mjs";
 
 export default function SignUp() {
   const [form] = Form.useForm();
+    const [employerForm] = Form.useForm();
   const router = useRouter();
-  
-const onFinish = async (values, role) => {
-    if (role === "student") {
-      router.push("/pages/student/home");
-    }
+  const searchParams = useSearchParams();
+  const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
 
-    if (role === "employer") {
-      router.push("/pages/employer/home");
-    }
-
-    if (role === "teacher") {
-      router.push("/pages/teacher/home");
-    }
-  };
-  /*const API_BASE = process.env.BASE || "http://localhost:8088";
+    const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
   const onFinish = async (values, role) => {
+    console.log("ыйбөйбыхбаөха")
     if (role === "student") {
+        console.log("энэ тата3");
       try {
         const response = await fetch(
           `${API_BASE}/api/auth/register/student`,
@@ -44,19 +38,20 @@ const onFinish = async (values, role) => {
                 role: "STUDENT",
                 isActive: true,
               },
-              firstName: values.fullName,
-              lastName: values.username,
+              firstName: values.firstName,
+              lastName: values.lastName,
             }),
           }
         );
+        const data = await parseResponseBody(response);
 
-        const data = await response.json();
 
         if (response.ok) {
           alert("Амжилттай бүртгэгдлээ");
           router.push("/pages/student/home");
         } else {
-          alert(data.message || "Бүртгэл амжилтгүй.");
+            console.log("өгөгдөл нь "+values.email,values.password,values.fullName,values.lastName);
+          alert(data?.message || "Бүртгэл амжилтгүй.");
         }
       } catch (error) {
         console.error(error);
@@ -81,18 +76,19 @@ const onFinish = async (values, role) => {
                 isActive: true
               },
               organizationName: values.fullName,
-              industry: values.username,
+              industry: values.industry,
             }),
           }
         );
 
-        const data = await response.json();
 
+        const data = await parseResponseBody(response);
+            console.log(data)
         if (response.ok) {
           alert("Амжилттай бүртгэгдлээ");
           router.push("/pages/employer/home");
         } else {
-          alert(data.message || "Бүртгэл амжилтгүй.");
+          alert(data?.message || "Бүртгэл амжилтгүй.");
         }
       } catch (error) {
         console.error(error);
@@ -103,7 +99,9 @@ const onFinish = async (values, role) => {
 
     if (role === "teacher") {
       try {
+          console.log("энэ тата4");
         const response = await fetch(
+
           `${API_BASE}/api/auth/register/teacher`,
           {
             method: "POST",
@@ -117,23 +115,18 @@ const onFinish = async (values, role) => {
                 role: "TEACHER",
                 isActive: true
               },
-              firstName: values.fullName,
-              lastName: values.username,
+              firstName: values.firstName,
+              lastName: values.lastName,
             }),
           }
         );
-        const text = await response.text();
-
-        let data = null;
-        if (text) {
-          data = JSON.parse(text);
-        }
+        const data = await parseResponseBody(response);
 
         if (response.ok) {
           alert("Амжилттай бүртгэгдлээ");
           router.push("/pages/teacher/home");
         } else {
-          alert(data.message || "Бүртгэл амжилтгүй.");
+          alert(data?.message || "Бүртгэл амжилтгүй.");
         }
       } catch (error) {
         console.error(error);
@@ -141,7 +134,7 @@ const onFinish = async (values, role) => {
       }
 
     }
-  };*/
+  };
 
   const items = [
     {
@@ -153,8 +146,8 @@ const onFinish = async (values, role) => {
             <div>
               <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Аль хэдийн бүртгэлтэй юу?{" "}
-                <Link href="/pages/login">Нэвтрэх</Link>
+                Бүртгэлтэй юу?{" "}
+                <Link href="/pages/login">Нэвтрэх </Link>
               </p>
             </div>
 
@@ -163,16 +156,15 @@ const onFinish = async (values, role) => {
           <Form
             form={form}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "student")}
-          >
+            onFinish={(values) => onFinish(values, "student")}>
             <div className={styles.row}>
               <Form.Item
-                name="fullName"
+                name="lastName"
                 className={styles.half}
                 rules={[
                   {
                     required: true,
-                    message: "Овог бичнэ үү!",
+                    message: "Овогоо бичнэ үү!",
                   },
                 ]}
               >
@@ -180,7 +172,7 @@ const onFinish = async (values, role) => {
               </Form.Item>
 
               <Form.Item
-                name="username"
+                name="firstName"
                 className={styles.half}
                 rules={[
                   {
@@ -258,15 +250,15 @@ const onFinish = async (values, role) => {
                       ? Promise.resolve()
                       : Promise.reject(
                         new Error(
-                          "Please accept Terms of Services"
+                          "Үйлчилгээний нөхцөлтэй танилц"
                         )
                       ),
                 },
               ]}
             >
               <Checkbox>
-                <a href="/"> Үйлчилгээний нөхцөл </a>
-                {" "} -тэй танилцаж зөвшөөрөв
+                <a href="/">Үйлчилгээний нөхцөл</a>
+                {" "} -тэй танилцаж зөвшөөрсөн
               </Checkbox>
             </Form.Item>
 
@@ -284,14 +276,14 @@ const onFinish = async (values, role) => {
     },
     {
       key: '2',
-      label: 'Ажилтан',
+      label: 'Байгууллага',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Бүртгэл үүсгэх.</h2>
+              <h2>Бүртгэл үүсгэх</h2>
               <p>
-                Аль хэдийн бүртгэлтэй юу?{" "}
+                Бүртгэлтэй юу?{" "}
                 <Link href="/pages/login">Нэвтрэх</Link>
               </p>
             </div>
@@ -299,10 +291,11 @@ const onFinish = async (values, role) => {
           </div>
 
           <Form
-            form={form}
+            form={employerForm}
             layout="vertical"
-            onFinish={(values) => onFinish(values, "student")}
+            onFinish={(values) => onFinish(values, "employer")}
           >
+
             <div className={styles.row}>
               <Form.Item
                 name="fullName"
@@ -310,13 +303,25 @@ const onFinish = async (values, role) => {
                 rules={[
                   {
                     required: true,
-                    message: "Компани нэрээ бичнэ үү!",
+                    message: "Нэрээ бичнэ үү!",
                   },
                 ]}
               >
-                <Input placeholder="Компани нэр" />
+                <Input placeholder="Байгууллагын нэр" />
               </Form.Item>
 
+              <Form.Item
+                name="username"
+                className={styles.half}
+                rules={[
+                  {
+                    required: true,
+                    message: "Салбараа бичнэ үү!",
+                  },
+                ]}
+              >
+                <Input placeholder="Салбар" />
+              </Form.Item>
             </div>
 
             <Form.Item
@@ -324,11 +329,11 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Имэйл хаягаа оруулна уу!",
+                  message: "Имэйл хаягаа бичнэ үү!",
                 },
                 {
                   type: "email",
-                  message: "Буруу имэйл!",
+                  message: "Буруу имэйл хаяг !",
                 },
               ]}
             >
@@ -340,7 +345,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Нууц үг оруулна уу!",
+                  message: "Нууц үгээ оруулна уу!",
                 },
               ]}
             >
@@ -353,7 +358,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Нууц үгээ давтаж бичнэ үү!",
+                  message: "Нууц үг таарахгүй байна!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -391,8 +396,8 @@ const onFinish = async (values, role) => {
               ]}
             >
               <Checkbox>
-                <a href="/"> Үйлчилгээний нөхцөл </a>
-                {" "} -тэй танилцаж зөвшөөрөв
+                <a href="/">Үйлчилгээний нөхцөл</a>
+                {" "} -тэй танилцаж зөвшөөрсөн
               </Checkbox>
             </Form.Item>
 
@@ -417,7 +422,7 @@ const onFinish = async (values, role) => {
             <div>
               <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Аль хэдийн бүртгэлтэй юу?{" "}
+                Бүртгэлтэй юу?{" "}
                 <Link href="/pages/login">Нэвтрэх</Link>
               </p>
             </div>
@@ -431,12 +436,12 @@ const onFinish = async (values, role) => {
           >
             <div className={styles.row}>
               <Form.Item
-                name="fullName"
+                name="lastName"
                 className={styles.half}
                 rules={[
                   {
                     required: true,
-                    message: "Овог бичнэ үү!",
+                    message: "Овогоо бичнэ үү!",
                   },
                 ]}
               >
@@ -444,7 +449,7 @@ const onFinish = async (values, role) => {
               </Form.Item>
 
               <Form.Item
-                name="username"
+                name="firstName"
                 className={styles.half}
                 rules={[
                   {
@@ -466,7 +471,7 @@ const onFinish = async (values, role) => {
                 },
                 {
                   type: "email",
-                  message: "Буруу имэйл!",
+                  message: "Имэйл хаяг буруу!",
                 },
               ]}
             >
@@ -478,7 +483,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Нууц үг оруулна уу!",
+                  message: "Нууц үгээ бичнэ үү!",
                 },
               ]}
             >
@@ -491,7 +496,7 @@ const onFinish = async (values, role) => {
               rules={[
                 {
                   required: true,
-                  message: "Нууц үгээ давтаж бичнэ үү!",
+                  message: "Нууц үг давтана уу!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -509,7 +514,7 @@ const onFinish = async (values, role) => {
                 }),
               ]}
             >
-              <Input.Password placeholder="Нууц үг давтах" />
+              <Input.Password placeholder="Нууц үг давтах " />
             </Form.Item>
 
             <Form.Item
@@ -522,15 +527,15 @@ const onFinish = async (values, role) => {
                       ? Promise.resolve()
                       : Promise.reject(
                         new Error(
-                          "Please accept Terms of Services"
+                          "Үйлчилгээний нөхцөлтэй танилцаж зөвшөөрнө үү"
                         )
                       ),
                 },
               ]}
             >
               <Checkbox>
-                <a href="/"> Үйлчилгээний нөхцөл </a>
-                {" "} -тэй танилцаж зөвшөөрөв
+                <a href="/">Үйлчилгээний нөхцөл</a>
+                {" "} -тэй танилцаж зөвшөөрсөн
               </Checkbox>
             </Form.Item>
 
@@ -554,7 +559,7 @@ const onFinish = async (values, role) => {
 
       <div className={styles.right}>
         <Tabs
-          defaultActiveKey="1"
+          defaultActiveKey={activeTabKey}
           centered
           items={items}
         />

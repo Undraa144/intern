@@ -12,37 +12,75 @@ import {
 
 import {
   Layout,
-  theme,
   Card,
   Tag,
 } from "antd";
 import MainLayout from "@/app/MainLayout";
+import {parseResponseBody} from "@/app/utils/response-body.mjs";
 
 const {  Content,  } = Layout;
 
 export default function RequestPage() {
   const [requests, setRequests] = useState([]);
+  const [approvedCount, setApprovedCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   useEffect(() => {
-    const data =
-      JSON.parse(localStorage.getItem("requests")) || [];
+    const API_BASE = process.env.BASE || "http://localhost:8088";
+    //status тоог авах холболтыг функц
+    const loadStatus = async () => {
+      try {
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
 
-    setRequests(data);
+        const token = getCookie("token");
+
+        const response = await fetch(`${API_BASE}/api/applications/status`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await parseResponseBody(response);
+
+        setApprovedCount(data.accepted);
+        setRejectedCount(data.rejected);
+        setPendingCount(data.pending);
+      } catch (error) {
+        alert("status авах холболт дээр алдаа гарлаа "+error);
+      }
+    };
+    //application авах холболт
+    const loadApp = async () => {
+      try {
+        function getCookie(name) {
+          return document.cookie
+              .split("; ")
+              .find(row => row.startsWith(name + "="))
+              ?.split("=")[1];
+        }
+
+        const token = getCookie("token");
+        const response = await fetch(`${API_BASE}/api/applications`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await parseResponseBody(response);
+        setRequests(data);
+      }
+      catch (e) {
+        console.log("application авах холболт дээр алдаа гарлаа ",e);
+      }
+    }
+    loadStatus();
+    loadApp();
+
   }, []);
-
-  const approvedCount = requests.filter(
-    (item) => item.status === "approved"
-  ).length;
-
-  const pendingCount = requests.filter(
-    (item) => item.status === "pending"
-  ).length;
-
-  const rejectedCount = requests.filter(
-    (item) => item.status === "rejected"
-  ).length;
-
-
 
   return (
     <MainLayout role="student">
@@ -88,29 +126,29 @@ export default function RequestPage() {
             </div>
           </div>
 
-          {requests.map((item, index) => (
+          {requests.map(( item, index) => (
             <Card
               key={index}
               className={styles.requestCard}
             >
               <div className={styles.cardHeader}>
                 <div>
-                  <h3>{item.title}</h3>
+                  <h3>{item.postTitle}</h3>
                   <p>{item.company}</p>
                 </div>
 
                 <Tag
                   color={
-                    item.status === "approved"
+                    item.status === "ACCEPTED"
                       ? "success"
-                      : item.status === "rejected"
+                      : item.status === "REJECTED"
                       ? "error"
                       : "warning"
                   }
                 >
-                  {item.status === "approved"
+                  {item.status === "ACCEPTED"
                     ? "Зөвшөөрөгдсөн"
-                    : item.status === "rejected"
+                    : item.status === "REJECTED"
                     ? "Татгалзсан"
                     : "Хүлээгдэж буй"}
                 </Tag>
@@ -122,7 +160,7 @@ export default function RequestPage() {
 
               <div className={styles.dateRow}>
                 <span>
-                  Илгээсэн: {item.sentDate}
+                  Илгээсэн: {item.submittedAt}
                 </span>
               </div>
             </Card>

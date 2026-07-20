@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link"
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Modal,
@@ -26,6 +25,15 @@ import {
 } from "@ant-design/icons";
 
 import styles from "./shome.module.scss";
+import {
+  toStudentJob,
+  withStudentJobDetail,
+} from "../../../utils/student-job.mjs";
+import {
+  createApplicationPayload,
+  getStudentIdFromResponse,
+} from "../../../utils/application-payload.mjs";
+import { parseResponseBody } from "../../../utils/response-body.mjs";
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -33,7 +41,7 @@ const { Title, Text } = Typography;
 const jobs = [
     {
     company: "Instagram",
-    title: "Маркетинг",
+    title: "Marketing",
     image: "/company.jpeg",
     color: "#ece9ff",
     location: "Улаанбаатар",
@@ -50,7 +58,7 @@ const jobs = [
   },
     {
     company: "Unitel",
-    title: "IT инженер",
+    title: "IT engineer",
     image: "/company.jpeg",
     color: "#e9faf6",
     location: "Улаанбаатар",
@@ -67,7 +75,7 @@ const jobs = [
   },
     {
     company: "MSC",
-    title: "Дизайн",
+    title: "Design",
     image: "/company.jpeg",
     color: "#fff0e6",
     location: "Улаанбаатар",
@@ -84,7 +92,7 @@ const jobs = [
   },
     {
     company: "Khan Bank",
-    title: "Санхүү",
+    title: "Finance",
     image: "/company.jpeg",
     color: "#fdf0f5",
     location: "Улаанбаатар",
@@ -101,7 +109,7 @@ const jobs = [
   },
     {
     company: "Ub Даатгал ",
-    title: "Хүний нөөц",
+    title: "Human Resource",
     image: "/company.jpeg",
     color: "#e8f6ff",
     location: "Улаанбаатар",
@@ -119,7 +127,7 @@ const jobs = [
 
   {
     company: "DataTex Солюшнс",
-    title: "Өгөгдлийн шинжилгээ",
+    title: "Data Analysis",
     image: "/company.jpeg",
     color: "#fff0f8",
     location: "Улаанбаатар",
@@ -136,7 +144,7 @@ const jobs = [
   },
   {
     company: "Google",
-    title: "Програм хангамжийн инженер ",
+    title: "Software Engineer ",
     image: "/company.jpeg",
     color: "#f3f6fb",
     location: "Улаанбаатар",
@@ -153,7 +161,7 @@ const jobs = [
   },
     {
     company: "Slack",
-    title: "Төслийн менежер ",
+    title: "Project Manager ",
     image: "/company.jpeg",
     color: "#fff3d9",
     location: "Улаанбаатар",
@@ -171,11 +179,37 @@ const jobs = [
 ];
 
 export default function SHome({ searchText = "" }) {
-  
-const router = useRouter();
-const [coverLetter, setCoverLetter] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [open, setOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
+  const [hasDetailLoadError, setHasDetailLoadError] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const detailRequestIdRef = useRef(0);
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/postings`);
+
+        if (!response.ok) {
+          alert(`алдааа: ${response.status}`);
+        }
+
+        const postings = await response.json();
+        setJobs(Array.isArray(postings) ? postings.map(toStudentJob) : []);
+      } catch (error) {
+        console.error("Unable to load internship postings:", error);
+        setHasLoadError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadJobs();
+  }, []);
 
   const filteredJobs = jobs.filter(
     (job) =>
@@ -183,21 +217,121 @@ const [coverLetter, setCoverLetter] = useState("");
       job.company.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const handleApply = (job) => {
+  const handleApply = async (job) => {
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
+
     setSelectedJob(job);
     setOpen(true);
+    setIsDetailLoading(true);
+    setHasDetailLoadError(false);
+
+    try {
+      const response = await fetch(`${API_BASE}/api/postings/${job.id}`);
+
+      if (!response.ok) {
+        alert(`Unable to load posting detail: ${response.status}`);
+      }
+
+      const detail = await response.json();
+      setSelectedJob((currentJob) =>
+        currentJob?.id === job.id
+          ? withStudentJobDetail(currentJob, detail)
+          : currentJob
+      );
+    } catch (error) {
+      console.error("Unable to load internship posting detail:", error);
+      if (detailRequestIdRef.current === requestId) {
+        setHasDetailLoadError(true);
+      }
+    } finally {
+      if (detailRequestIdRef.current === requestId) {
+        setIsDetailLoading(false);
+      }
+    }
   };
+
+  const handleApplicationSubmit = async () => {
+    function getCookie(name) {
+      return document.cookie
+          .split("; ")
+          .find(row => row.startsWith(name + "="))
+          ?.split("=")[1];
+    }
+
+    const token = getCookie("token");
+
+    if (!token) {
+      alert("Хүсэлт илгээхийн тулд эхлээд нэвтэрнэ үү.");
+      return;
+    }
+
+    if (!selectedJob) {
+      alert("Сонгосон зар олдсонгүй.");
+      return;
+    }
+
+    setIsApplying(true);
+
+    try {
+      const idResponse = await fetch(`${API_BASE}/api/auth/myId`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const idData = await parseResponseBody(idResponse);
+
+      if (!idResponse.ok) {
+        alert(idData?.message || "Оюутны ID авч чадсангүй.");
+        return;
+      }
+
+      const studentId = getStudentIdFromResponse(idData);
+      const payload = createApplicationPayload({
+        coverLetter,
+        studentId,
+      });
+      const applicationResponse = await fetch(
+        `${API_BASE}/api/applications/${selectedJob.id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+      const applicationData = await parseResponseBody(applicationResponse);
+
+      if (!applicationResponse.ok) {
+        alert(applicationData?.message || "Хүсэлт илгээж чадсангүй.");
+        return;
+      }
+
+      alert("Хүсэлт амжилттай илгээгдлээ.");
+      setCoverLetter("");
+      setOpen(false);
+    } catch (error) {
+      console.error("Application submission failed:", error);
+      alert("Хүсэлт илгээх үед алдаа гарлаа.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
 
   return (
     <section className={styles.main}>
       <h1 className={styles.title}>Санал болгох ажил</h1>
 
       <div className={styles.grid}>
-        {filteredJobs.map((job, index) => (
-          <div key={index} className={styles.card}>
+        {!isLoading && !hasLoadError && filteredJobs.map((job) => (
+          <div key={job.id} className={styles.card}>
             <div
               className={styles.top}
-              style={{ backgroundColor: job.color }}
+              style={{ backgroundColor: "#ece9ff" }}
             >
               <Image
                 src={job.image}
@@ -211,7 +345,8 @@ const [coverLetter, setCoverLetter] = useState("");
               <Link href="/pages/student/company"><p>{job.company}</p></Link>
 
               <div className={styles.tags}>
-                <span>Дадлага</span>
+                <span>Part Time</span>
+                <span>Internship</span>
               </div>
             </div>
 
@@ -227,7 +362,19 @@ const [coverLetter, setCoverLetter] = useState("");
         ))}
       </div>
 
-      {filteredJobs.length === 0 && (
+        {isLoading && (
+          <h3 className={styles.empty}>
+            Ажлын зар ачаалж байна...
+          </h3>
+        )}
+
+        {hasLoadError && (
+          <h3 className={styles.empty}>
+            Ажлын зарыг ачаалж чадсангүй
+          </h3>
+        )}
+
+        {!isLoading && !hasLoadError && filteredJobs.length === 0 && (
         <h3 className={styles.empty}>
           Илэрц олдсонгүй
         </h3>
@@ -238,17 +385,27 @@ const [coverLetter, setCoverLetter] = useState("");
         footer={null}
         onCancel={() => setOpen(false)}
         width={800}
-        title={null}
-      >
+        title={null}>
         {selectedJob && (
           <>
             <Title level={3}>
               {selectedJob.title}
+
             </Title>
 
             <Text type="secondary">
               {selectedJob.company}
             </Text>
+
+            {isDetailLoading && (
+              <Text type="secondary">Дэлгэрэнгүй мэдээлэл ачаалж байна...</Text>
+            )}
+
+            {hasDetailLoadError && (
+              <Text type="danger">
+                Дэлгэрэнгүй мэдээллийг ачаалж чадсангүй.
+              </Text>
+            )}
 
             <Card
               style={{
@@ -264,7 +421,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.location}
+                     {selectedJob.location || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -274,7 +431,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.duration}
+                     {selectedJob.duration || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -284,7 +441,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.salary}
+                       {selectedJob.salary || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -294,7 +451,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.gpa}
+                     {selectedJob.gpa || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
 
@@ -304,9 +461,10 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.vacancies}
+                     {selectedJob.vacancies || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
+
 
                 <Col span={8}>
                   <Text type="secondary">
@@ -314,7 +472,7 @@ const [coverLetter, setCoverLetter] = useState("");
                   </Text>
                   <br />
                   <Text strong>
-                    {selectedJob.deadline}
+                     {selectedJob.deadline || "Мэдээлэл байхгүй"}
                   </Text>
                 </Col>
               </Row>
@@ -323,7 +481,7 @@ const [coverLetter, setCoverLetter] = useState("");
             <Title level={5}>Тайлбар</Title>
 
             <Text>
-              {selectedJob.description}
+               {selectedJob.description || "Мэдээлэл байхгүй"}
             </Text>
 
             <Divider />
@@ -340,48 +498,56 @@ const [coverLetter, setCoverLetter] = useState("");
                 marginBottom: 20,
               }}
             >
-              {selectedJob.majors.map((item) => (
-                <Tag key={item}>
-                  {item}
-                </Tag>
-              ))}
+               {selectedJob.majors.length > 0 ? (
+                 selectedJob.majors.map((item) => (
+                   <Tag key={item}>
+                     {item}
+                   </Tag>
+                 ))
+               ) : (
+                 <Text type="secondary">Мэдээлэл байхгүй</Text>
+               )}
             </div>
 
-            <Title level={5}>
-              Шаардлагатай чадвар
-            </Title>
+             {selectedJob.skills.length > 0 && (
+               <>
+                 <Title level={5}>Шаардлагатай чадвар</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.skills.map((item) => (
+                     <Tag color="blue" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.skills.map((item) => (
-                <Tag color="blue" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
-
-            <Title level={5}>Хэл</Title>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {selectedJob.languages.map((item) => (
-                <Tag color="green" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
+             {selectedJob.languages.length > 0 && (
+               <>
+                 <Title level={5}>Хэл</Title>
+                 <div
+                   style={{
+                     display: "flex",
+                     gap: 8,
+                     flexWrap: "wrap",
+                     marginBottom: 20,
+                   }}
+                 >
+                   {selectedJob.languages.map((item) => (
+                     <Tag color="green" key={item}>
+                       {item}
+                     </Tag>
+                   ))}
+                 </div>
+               </>
+             )}
 
             <Divider />
 
@@ -409,26 +575,9 @@ const [coverLetter, setCoverLetter] = useState("");
 
             <Button
               type="primary"
-              onClick={() => {
-                const request = {
-                  title: selectedJob.title,
-                  company: selectedJob.company,
-                  description: coverLetter,
-                  status: "pending",
-                  sentDate: new Date().toISOString().split("T")[0],
-                };
-
-                const oldRequests =
-                  JSON.parse(localStorage.getItem("requests")) || [];
-
-                localStorage.setItem(
-                  "requests",
-                  JSON.stringify([...oldRequests, request])
-                );
-
-                setOpen(false);
-                router.push("/pages/student/request");
-              }}
+              onClick={handleApplicationSubmit}
+              loading={isApplying}
+              disabled={isApplying}
             >
               Хүсэлт илгээх
             </Button>
