@@ -98,52 +98,52 @@ export default function ProfilePage() {
         alert("Хэрэглэгчийн мэдээллийг авч чадсангүй. Дахин оролдоно уу.");
       }
     };
-    const loadReview = async () =>{
-      try {
-        function getCookie(name) {
-          return document.cookie
-              .split("; ")
-              .find(row => row.startsWith(name + "="))
-              ?.split("=")[1];
-        }
-
-        const token = getCookie("token");
-        const response = await fetch(`${BASE_API}/api/evaluations/student`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        const data = await parseResponseBody(response);
-        if (!response.ok || !data) {
-          alert("review хүсэлт алдааа гарлаа");
-        }
-        //setReviews(data);
-      }
-      catch (e){
-        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
-      }
-    }
-    const loadAvgRate = async () =>{
-      try {
-        function getCookie(name) {
-          return document.cookie
-              .split("; ")
-              .find(row => row.startsWith(name + "="))
-              ?.split("=")[1];
-        }
-
-        const token = getCookie("token");
-        const response = fetch(`${BASE_API}/api/students/avg`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-        const data = await parseResponseBody(response);
-        console.log(data.toString());
-
-      }
-      catch (e){
-        alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
-      }
-    }
-    loadAvgRate();
-    loadReview();
+    // const loadReview = async () =>{
+    //   try {
+    //     function getCookie(name) {
+    //       return document.cookie
+    //           .split("; ")
+    //           .find(row => row.startsWith(name + "="))
+    //           ?.split("=")[1];
+    //     }
+    //
+    //     const token = getCookie("token");
+    //     const response = await fetch(`${BASE_API}/api/evaluations/student`, {
+    //       headers: token ? { Authorization: `Bearer ${token}` } : {},
+    //     });
+    //     const data = await parseResponseBody(response);
+    //     if (!response.ok || !data) {
+    //       alert("review хүсэлт алдааа гарлаа");
+    //     }
+    //     //setReviews(data);
+    //   }
+    //   catch (e){
+    //     alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
+    //   }
+    // }
+    // const loadAvgRate = async () =>{
+    //   try {
+    //     function getCookie(name) {
+    //       return document.cookie
+    //           .split("; ")
+    //           .find(row => row.startsWith(name + "="))
+    //           ?.split("=")[1];
+    //     }
+    //
+    //     const token = getCookie("token");
+    //     const response = fetch(`${BASE_API}/api/students/avg`, {
+    //       headers: token ? { Authorization: `Bearer ${token}` } : {},
+    //     })
+    //     const data = await parseResponseBody(response);
+    //     console.log(data.toString());
+    //
+    //   }
+    //   catch (e){
+    //     alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
+    //   }
+    // }
+    // loadAvgRate();
+    // loadReview();
     loadProfile();
   }, []);
 
