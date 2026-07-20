@@ -7,42 +7,34 @@ import styles from "./home2.module.scss";
 const categories = [
   {
     title: "Хүний нөөц",
-    jobs: "12 Jobs",
     image: "/majors/accounting.jpeg",
   },
   {
     title: "Санхүү",
-    jobs: "30 Jobs",
     image: "/majors/creative.jpeg",
   },
   {
     title: "Хөгжүүлэлт",
-    jobs: "22 Jobs",
     image: "/majors/development.jpeg",
   },
   {
     title: "Маркетинг",
-    jobs: "39 Jobs",
     image: "/majors/marketing.jpeg",
   },
   {
     title: "Эрх зүй",
-    jobs: "100 Jobs",
     image: "/majors/legal.jpeg",
   },
   {
     title: "Дизайн",
-    jobs: "39 Jobs",
     image: "/majors/design.jpeg",
   },
   {
     title: "Инженер",
-    jobs: "12 Jobs",
     image: "/majors/engineer.jpeg",
   },
   {
     title: "Бизнес",
-    jobs: "30 Jobs",
     image: "/majors/business.jpeg",
   },
 ];
