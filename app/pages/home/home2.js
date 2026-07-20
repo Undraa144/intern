@@ -11,7 +11,7 @@ const categories = [
     image: "/majors/accounting.jpeg",
   },
   {
-    title: "Creative",
+    title: "Санхүү",
     jobs: "30 Jobs",
     image: "/majors/creative.jpeg",
   },
