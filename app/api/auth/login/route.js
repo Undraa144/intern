@@ -31,7 +31,7 @@ export async function POST(request) {
       .replace(/^Bearer\s+/i, "")
       .trim();
 
-    cookieStore.set("auth_token", token, {
+    cookieStore.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

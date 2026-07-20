@@ -40,7 +40,7 @@ async function refreshAccessToken(token) {
 
 export async function PUT() {
   const cookieStore = await cookies();
-  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
@@ -53,7 +53,7 @@ export async function PUT() {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
@@ -61,12 +61,12 @@ export async function PUT() {
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await addStudent(token);
     }
 
     if (response.status === 401) {
-      cookieStore.delete("auth_token");
+      cookieStore.delete("token");
     }
 
     const responseBody = await response.text();

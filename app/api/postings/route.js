@@ -68,7 +68,7 @@ async function refreshAccessToken(token) {
 
 export async function POST(request) {
   const cookieStore = await cookies();
-  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
@@ -82,7 +82,7 @@ export async function POST(request) {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
@@ -90,7 +90,7 @@ export async function POST(request) {
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await createPosting(token, body);
     }
 

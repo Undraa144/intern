@@ -15,15 +15,18 @@ function getBearerToken(value) {
   return token?.replace(/^Bearer\s+/i, "").trim();
 }
 
-async function uploadFile(token, formData) {
-  return fetch(`${API_BASE}/api/reports/file`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getBearerToken(token)}`,
-    },
-    body: formData,
-    cache: "no-store",
-  });
+function requestReportFile(token, reportId, formData, method) {
+  return fetch(
+    `${API_BASE}/api/reports/file/${encodeURIComponent(reportId)}`,
+    {
+      method,
+      headers: {
+        Authorization: `Bearer ${getBearerToken(token)}`,
+      },
+      body: formData,
+      cache: "no-store",
+    }
+  );
 }
 
 async function refreshAccessToken(token) {
@@ -38,7 +41,8 @@ async function refreshAccessToken(token) {
   return response.ok ? data.token : null;
 }
 
-export async function POST(request) {
+async function handleFileRequest(request, params, method) {
+  const { reportId } = await params;
   const cookieStore = await cookies();
   let token = getBearerToken(cookieStore.get("token")?.value);
 
@@ -49,26 +53,42 @@ export async function POST(request) {
     );
   }
 
-  try {
-    const incomingFormData = await request.formData();
-    const file = incomingFormData.get("file");
+  if (!reportId) {
+    return Response.json(
+      { message: "Тайлангийн дугаар шаардлагатай." },
+      { status: 400 }
+    );
+  }
 
-    if (!(file instanceof File) || file.size === 0) {
-      return Response.json(
-        { message: "Тайлангийн файл сонгоно уу." },
-        { status: 400 }
-      );
+  try {
+    let createFormData = () => undefined;
+
+    if (method !== "DELETE") {
+      const incomingFormData = await request.formData();
+      const file = incomingFormData.get("file");
+
+      if (!(file instanceof File) || file.size === 0) {
+        return Response.json(
+          { message: "Файл сонгоно уу." },
+          { status: 400 }
+        );
+      }
+
+      createFormData = () => {
+        const formData = new FormData();
+        formData.append("file", file, file.name);
+        return formData;
+      };
     }
 
-    const createFormData = () => {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-      return formData;
-    };
+    let response = await requestReportFile(
+      token,
+      reportId,
+      createFormData(),
+      method
+    );
 
-    let response = await uploadFile(token, createFormData());
-
-    if (response.status === 401) {
+    if (response.status === 401 || response.status === 403) {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
@@ -81,7 +101,12 @@ export async function POST(request) {
 
       token = getBearerToken(refreshedToken);
       cookieStore.set("token", token, cookieOptions);
-      response = await uploadFile(token, createFormData());
+      response = await requestReportFile(
+        token,
+        reportId,
+        createFormData(),
+        method
+      );
     }
 
     if (response.status === 401) {
@@ -89,6 +114,19 @@ export async function POST(request) {
       return Response.json(
         { message: "Нэвтрэх эрх хүчингүй байна. Дахин нэвтэрнэ үү." },
         { status: 401 }
+      );
+    }
+
+    if (response.status === 403) {
+      const responseBody = await response.text();
+
+      return Response.json(
+        {
+          message:
+            responseBody ||
+            "Энэ тайлангийн файлыг устгах эрх backend серверээс олгогдсонгүй.",
+        },
+        { status: 403 }
       );
     }
 
@@ -108,4 +146,16 @@ export async function POST(request) {
       { status: 502 }
     );
   }
+}
+
+export async function POST(request, { params }) {
+  return handleFileRequest(request, params, "POST");
+}
+
+export async function PUT(request, { params }) {
+  return handleFileRequest(request, params, "PUT");
+}
+
+export async function DELETE(request, { params }) {
+  return handleFileRequest(request, params, "DELETE");
 }

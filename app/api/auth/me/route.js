@@ -38,7 +38,7 @@ async function refreshAccessToken(token) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  let token = cookieStore.get("auth_token")?.value;
+  let token = cookieStore.get("token")?.value;
 
   if (!token) {
     return Response.json(
@@ -54,17 +54,17 @@ export async function GET() {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         const data = await response.json().catch(() => ({}));
         return Response.json(data, { status: 401 });
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await getCurrentUser(token);
 
       if (response.status === 401) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
       }
     }
 
