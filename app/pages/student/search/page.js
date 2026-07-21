@@ -1,19 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
-import Home3 from "../../home/home3";
-
-import { Layout, Menu, Button, AutoComplete, Input } from "antd";
-
-import {
-  AppstoreOutlined,
-  FileSearchOutlined,
-  InboxOutlined,
-  CopyOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { Layout,  AutoComplete, Input } from "antd";
 
 import styles from "./page.module.scss";
 import SHome from "../home/shome";

@@ -6,19 +6,11 @@ import Link from "next/link";
 import styles from "./page.module.scss";
 
 import {
-  UserOutlined,
-  AppstoreOutlined,
-  BankOutlined ,
-  TeamOutlined ,
-  SolutionOutlined ,
   FilePdfOutlined,
-  PlusOutlined,
-  UploadOutlined,
 } from "@ant-design/icons";
 
 import {
   Layout,
-  Menu,
   Button,
   Card,
   Tag,
@@ -27,12 +19,11 @@ import {
   Modal,
   Form,
   Input,
-  Upload,
   message,
 } from "antd";
 import MainLayout from "@/app/MainLayout";
 
-const { Header, Content, Footer } = Layout;
+const {  Content,  } = Layout;
 const { Title, Text } = Typography;
 
 export default function ReportPage() {
@@ -174,8 +165,6 @@ const saveComment = () => {
             >
             Тэмдэглэл бичих
             </Button>
-
-
 
             {report.comment && (
             <Alert

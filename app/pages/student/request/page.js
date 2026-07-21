@@ -28,7 +28,6 @@ export default function RequestPage() {
 
   useEffect(() => {
     const API_BASE = process.env.BASE || "http://localhost:8088";
-    //status тоог авах холболтыг функц
     const loadStatus = async () => {
       try {
         function getCookie(name) {
@@ -54,7 +53,6 @@ export default function RequestPage() {
         alert("status авах холболт дээр алдаа гарлаа "+error);
       }
     };
-    //application авах холболт
     const loadApp = async () => {
       try {
         function getCookie(name) {

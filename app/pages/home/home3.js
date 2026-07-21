@@ -22,56 +22,26 @@ import {
 } from "@ant-design/icons";
 import styles from "./home3.module.scss";
 
-const jobs = [
-  {
-    company: "Facebook",
-    title: "Marketing Manager",
-    image: "/company.jpeg",
-    color: "#ece9ff",
-  },
-  {
-    company: "Dribbble",
-    title: "UI Designer",
-    image: "/company.jpeg",
-    color: "#e9faf6",
-  },
-  {
-    company: "WordPress",
-    title: "Frontend Developer",
-    image: "/company.jpeg",
-    color: "#fff0e6",
-  },
-  {
-    company: "Fiverr",
-    title: "Product Designer",
-    image: "/company.jpeg",
-    color: "#fdf0f5",
-  },
-  {
-    company: "Google",
-    title: "Software Engineer",
-    image: "/company.jpeg",
-    color: "#e8f6ff",
-  },
-  {
-    company: "Skype",
-    title: "UX Researcher",
-    image: "/company.jpeg",
-    color: "#fff0f8",
-  },
-  {
-    company: "Apple",
-    title: "iOS Developer",
-    image: "/company.jpeg",
-    color: "#f3f6fb",
-  },
-  {
-    company: "Slack",
-    title: "Project Manager",
-    image: "/company.jpeg",
-    color: "#fff3d9",
-  },
+const { Title, Text } = Typography;
+
+// Картнуудын фоны өнгө
+const cardColors = [
+  "#ece9ff",
+  "#e9faf6",
+  "#fff0e6",
+  "#fdf0f5",
+  "#e8f6ff",
+  "#fff0f8",
+  "#f3f6fb",
+  "#fff3d9",
 ];
+
+// Array эсвэл string ирж байгаа утгуудыг нэгэн стандартад оруулж Array болгох функц
+const normalizeMajors = (val) => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") return val.split(",").map((s) => s.trim());
+  return [];
+};
 
 export default function Home3({ searchText = "" }) {
   const [jobs, setJobs] = useState([]);
@@ -87,12 +57,15 @@ export default function Home3({ searchText = "" }) {
         const endpoint = searchText
           ? `/api/postings/search/${encodeURIComponent(searchText)}`
           : "/api/postings";
+        
         const response = await fetch(endpoint, { cache: "no-store" });
-        const data = await response.json().catch(() => ({}));
 
+        // HTTP Алдаа гарсан үед (жишээ нь: 502, 500, 404)
         if (!response.ok) {
-          throw new Error(data.message || "Заруудыг ачаалж чадсангүй.");
+          throw new Error(`Серверээс хариу ирсэнгүй эсвэл алдаа гарлаа. (Status: ${response.status})`);
         }
+
+        const data = await response.json();
 
         const payload = Array.isArray(data)
           ? data
@@ -104,11 +77,13 @@ export default function Home3({ searchText = "" }) {
           const allResponse = await fetch("/api/postings", {
             cache: "no-store",
           });
-          const allData = await allResponse.json().catch(() => ({}));
-          const allPayload = Array.isArray(allData)
-            ? allData
-            : allData.content ?? allData.postings ?? allData.data ?? [];
-          allPostings = Array.isArray(allPayload) ? allPayload : [];
+          if (allResponse.ok) {
+            const allData = await allResponse.json();
+            const allPayload = Array.isArray(allData)
+              ? allData
+              : allData.content ?? allData.postings ?? allData.data ?? [];
+            allPostings = Array.isArray(allPayload) ? allPayload : [];
+          }
         }
 
         if (!cancelled) {
@@ -123,46 +98,47 @@ export default function Home3({ searchText = "" }) {
               );
 
               return {
-              ...posting,
-              id:
-                postingId ?? index,
-              company:
-                posting.organizationName ??
-                posting.companyName ??
-                posting.company ??
-                posting.organization?.organizationName ??
-                posting.organization?.name ??
-                fullPosting?.organizationName ??
-                fullPosting?.companyName ??
-                fullPosting?.company ??
-                fullPosting?.organization?.organizationName ??
-                fullPosting?.organization?.name ??
-                "Байгууллагын нэр байхгүй",
-              image: "/company.jpeg",
-              color: cardColors[index % cardColors.length],
-              majors: normalizeMajors(
-                posting.requiredMajors ??
-                  posting.majors ??
-                  posting.majorNames ??
-                  posting.requiredMajor
-              ),
-              skills: normalizeMajors(
-                posting.requiredSkills ?? posting.skills
-              ),
-              location: posting.city ?? posting.location ?? "-",
-              vacancies: posting.vacancyCount ?? posting.vacancies ?? "-",
-              gpa: posting.minGpa ?? posting.gpa ?? "-",
-              deadline: posting.deadline ?? "-",
-              salary: posting.isSalaryUnspecified
-                ? "Тохиролцоно"
-                : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`,
+                ...posting,
+                id: postingId ?? index,
+                company:
+                  posting.organizationName ??
+                  posting.companyName ??
+                  posting.company ??
+                  posting.organization?.organizationName ??
+                  posting.organization?.name ??
+                  fullPosting?.organizationName ??
+                  fullPosting?.companyName ??
+                  fullPosting?.company ??
+                  fullPosting?.organization?.organizationName ??
+                  fullPosting?.organization?.name ??
+                  "Байгууллагын нэр байхгүй",
+                image: "/company.jpeg",
+                color: cardColors[index % cardColors.length],
+                majors: normalizeMajors(
+                  posting.requiredMajors ??
+                    posting.majors ??
+                    posting.majorNames ??
+                    posting.requiredMajor
+                ),
+                skills: normalizeMajors(
+                  posting.requiredSkills ?? posting.skills
+                ),
+                location: posting.city ?? posting.location ?? "-",
+                vacancies: posting.vacancyCount ?? posting.vacancies ?? "-",
+                gpa: posting.minGpa ?? posting.gpa ?? "-",
+                deadline: posting.deadline ?? "-",
+                salary: posting.isSalaryUnspecified
+                  ? "Тохиролцоно"
+                  : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`,
               };
             })
           );
         }
       } catch (error) {
-        console.error(error);
-        if (!cancelled) setJobs([]);
+        console.error("Postings Fetch Error:", error);
+        if (!cancelled) {
+          setJobs([]);
+        }
       }
     };
 
@@ -183,13 +159,14 @@ export default function Home3({ searchText = "" }) {
       const response = await fetch(`/api/postings/${job.id}`, {
         cache: "no-store",
       });
-      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
+        throw new Error("Зарын дэлгэрэнгүйг ачаалж чадсангүй.");
       }
 
+      const data = await response.json();
       const detail = data.data ?? data.posting ?? data;
+
       setSelectedJob({
         ...job,
         ...detail,

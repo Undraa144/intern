@@ -46,6 +46,7 @@ export default function ProfilePage() {
     email: "temuulen@example.mn",
     school: "МУИС",
     gpa: "3.65",
+    level: "3",
     bio: "Гуравдугаар курсын програм хангамжийн оюутан.",
     resume: "Resume.pdf",
     skills: "React, Next.js, JavaScript, Python, SQL",
@@ -82,6 +83,7 @@ export default function ProfilePage() {
           email: data.email || "temuulen@example.mn",
           school: data.school || "",
           gpa: data.gpa || "3.65",
+          level: data.levle || "3",
           bio: data.bio || "Гуравдугаар курсын програм хангамжийн оюутан.",
           resume: data.resume || "Resume.pdf",
           skills: data.skills || "React, Next.js, JavaScript, Python, SQL",
@@ -147,6 +149,7 @@ export default function ProfilePage() {
 
               <div className={styles.tags}>
                 <Tag color="green">Сургууль : {profile.school}</Tag>
+                <Tag color="yellow">Курс : {profile.level}</Tag>
                 <Tag color="blue">GPA {profile.gpa}</Tag>
               </div>
             </div>
@@ -243,7 +246,7 @@ export default function ProfilePage() {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      school: e.target.value, // Fixed from gpa to school
+                      school: e.target.value, 
                     })
                   }
                 />
@@ -251,6 +254,25 @@ export default function ProfilePage() {
             </Row>
 
             <Row gutter={16} style={{ marginTop: 16 }}>
+
+              <Col span={12}>
+                <label>Курс</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.01"
+                  disabled={!isEditing}
+                  value={profile.level}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      gpa: e.target.value,
+                    })
+                  }
+                />
+              </Col>
+              
               <Col span={12}>
                 <label>GPA</label>
                 <Input
@@ -268,6 +290,9 @@ export default function ProfilePage() {
                   }
                 />
               </Col>
+            </Row>
+
+            <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
                 <label>Имэйл</label>
                 <Input disabled value={profile.email} />
