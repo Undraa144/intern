@@ -50,7 +50,6 @@ useEffect(() => {
   const savedProfile = localStorage.getItem("studentProfile");
   if (savedProfile) {
     const data = JSON.parse(savedProfile);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProfile({
       companyName: data.companyName || "ДатаТех Солюшнс",
       industry: data.industry || "Мэдээллийн технологи",

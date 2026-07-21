@@ -204,7 +204,18 @@ export default function SHome({ searchText = "" }) {
               />
 
               <h3>{job.title}</h3> 
-              <Link href="/pages/student/company"><p>{job.company}</p></Link>
+              {job.organizationId ? (
+                <Link
+                  href={{
+                    pathname: "/pages/student/company",
+                    query: { organizationId: job.organizationId },
+                  }}
+                >
+                  <p>{job.company}</p>
+                </Link>
+              ) : (
+                <p>{job.company}</p>
+              )}
 
               <div className={styles.tags}>
                 {job.industry && <span>{job.industry}</span>}

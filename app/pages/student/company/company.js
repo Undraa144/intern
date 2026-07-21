@@ -18,6 +18,7 @@ import {
 
 import {
   BankOutlined,
+  EnvironmentOutlined,
   GlobalOutlined,
   StarFilled ,
 } from "@ant-design/icons";
@@ -26,6 +27,11 @@ import styles from "./company.module.scss"
 
 const { TextArea } = Input;
 const { Title, Text } = Typography
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+
+const toWebsiteUrl = (website) =>
+  website && /^https?:\/\//i.test(website) ? website : `https://${website}`;
 
 const defaultProfile = {
   companyName: "ДатаТех Солюшнс",
@@ -47,29 +53,62 @@ const [comment, setComment] = useState("");
 
 
 const [profile, setProfile] = useState(defaultProfile);
+const [isLoading, setIsLoading] = useState(true);
+const [loadError, setLoadError] = useState("");
 
 useEffect(() => {
   let isActive = true;
 
-  queueMicrotask(() => {
-    if (!isActive) return;
-
+  const loadProfile = async () => {
     const savedReviews = JSON.parse(localStorage.getItem("companyReviews")) || [];
-    const savedProfileValue = localStorage.getItem("studentProfile");
-    const saved = savedProfileValue ? JSON.parse(savedProfileValue) : {};
     const searchParams = new URLSearchParams(window.location.search);
+    const organizationId = searchParams.get("organizationId");
 
-    setReviews(savedReviews);
-    setProfile({
-      ...defaultProfile,
-      ...saved,
-      companyName:
-        searchParams.get("organizationName") || saved.companyName || defaultProfile.companyName,
-      industry:
-        searchParams.get("industry") || saved.industry || defaultProfile.industry,
-      address: searchParams.get("city") || saved.address || defaultProfile.address,
-    });
-  });
+    if (!organizationId) {
+      if (isActive) {
+        setLoadError("Байгууллагын ID олдсонгүй.");
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/organization/${organizationId}`);
+
+      if (!response.ok) {
+        throw new Error(`Organization profile request failed: ${response.status}`);
+      }
+
+      const organization = await response.json();
+
+      if (!isActive) return;
+
+      setReviews(savedReviews);
+      setProfile({
+        companyName:
+          organization.organizationName ?? organization.companyName ?? organization.name ?? "Мэдээлэл байхгүй",
+        industry: organization.industry ?? "Мэдээлэл байхгүй",
+        rate: organization.rate ?? organization.rating ?? 0,
+        website: organization.site ?? organization.website ?? "",
+        address: organization.address ?? organization.city ?? "Мэдээлэл байхгүй",
+        city: organization.city ?? "",
+        logoUrl: organization.logoUrl ?? "",
+        description: organization.description ?? "Мэдээлэл байхгүй",
+        verified: organization.verified ?? false,
+      });
+    } catch (error) {
+      console.error("Unable to load organization profile:", error);
+      if (isActive) {
+        setLoadError("Байгууллагын мэдээллийг ачаалж чадсангүй.");
+      }
+    } finally {
+      if (isActive) {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  loadProfile();
 
   return () => {
     isActive = false;
@@ -96,9 +135,13 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
 
         </div>
 
+        {isLoading && <Text>Байгууллагын мэдээлэл ачаалж байна...</Text>}
+        {loadError && <Text type="danger">{loadError}</Text>}
+
+        {!isLoading && !loadError && <>
         <Card className={styles.companyCard}>
             <div className={styles.companyInfo}>
-            <Avatar size={80}>
+            <Avatar size={80} src={profile.logoUrl || undefined}>
                 {profile.companyName
                 .split(" ")
                 .map((n) => n[0])
@@ -151,13 +194,24 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                 <Col span={12}>
                 <div className={styles.infoItem}>
                     <GlobalOutlined />
-                    <a
-                    href={`https://${profile.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >
-                    {profile.website}
-                    </a>
+                    {profile.website ? (
+                      <a
+                        href={toWebsiteUrl(profile.website)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {profile.website}
+                      </a>
+                    ) : (
+                      <span>Мэдээлэл байхгүй</span>
+                    )}
+                </div>
+                </Col>
+
+                <Col span={24}>
+                <div className={styles.infoItem}>
+                    <EnvironmentOutlined />
+                    <span>{profile.address}</span>
                 </div>
                 </Col>
             </Row>
@@ -166,7 +220,9 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
             <Title level={4}>Байршил</Title>
 
             <iframe
-                src="https://maps.google.com/maps?q=47.9184,106.9177&z=15&output=embed"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                  [profile.address, profile.city].filter(Boolean).join(", ")
+                )}&z=15&output=embed`}
                 width="100%"
                 height="350"
                 style={{
@@ -283,6 +339,8 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
             ))
           )}
         </Card>
+
+        </>}
 
         </div>
 

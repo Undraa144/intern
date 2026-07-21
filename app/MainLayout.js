@@ -36,7 +36,7 @@ export default function MainLayout({ children, role = "home" }) {
       },
       {
         key: "2",
-        label: "@Зар хайх",
+        label: "Зар хайх",
         icon: <FileSearchOutlined />,
       },
       {
