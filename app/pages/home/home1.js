@@ -21,22 +21,22 @@ export default function Home1() {
         className={styles.steps}
         items={[
           {
-            title: "Create Account",
+            title: "Бүртгэл үүсгэх",
             description: "Бүртгэл үүсгэн платформд нэвтэрнэ.",
             icon: <UserOutlined />,
           },
           {
-            title: "Upload CV",
+            title: "CV оруулах",
             description: "CV болон мэдээллээ оруулна.",
             icon: <UploadOutlined />,
           },
           {
-            title: "Find Job",
+            title: "Ажил хайх",
             description: <p>"Тохирох ажлын байраа хайна."</p> ,
             icon: <SearchOutlined style={{ color:"#1677ff"}}/>,
           },
           {
-            title: "Apply Job",
+            title: "Хүсэлт илгээх",
             description: "Ажлын байранд хүсэлт илгээнэ.",
             icon: <CheckCircleOutlined  style={{ color:"#1677ff"}} />,
           },

@@ -61,15 +61,15 @@ export default function Login() {
   const items = [
     {
       key: '1',
-      label: 'Student',
+      label: 'Оюутан',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Log In.</h2>
+              <h2>Нэвтрэх.</h2>
               <p>
-                Dont have any account?{" "}
-                <Link href="/pages/signup?role=student">Sign Up</Link>
+                Бүртгэлгүй юу? {" "}
+                <Link href="/pages/signup?role=student">Бүртгүүлэх</Link>
               </p>
             </div>
           </div>
@@ -83,15 +83,15 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -99,11 +99,11 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үгээ оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -111,7 +111,7 @@ export default function Login() {
               valuePropName="checked"
             >
               <Checkbox>
-                Remember me
+                Сануулах
               </Checkbox>
             </Form.Item>
 
@@ -121,7 +121,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              Log In
+              Нэвтрэх
             </Button>
           </Form>
         </div>
@@ -129,15 +129,15 @@ export default function Login() {
     },
     {
       key: '2',
-      label: 'Employer',
+      label: 'Байгууллага',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Log In.</h2>
+              <h2>Нэвтрэх.</h2>
               <p>
-                Dont have any account?{" "}
-                <Link href="/pages/signup?role=employer">Sign Up</Link>
+                Бүртгэлгүй юу?{" "}
+                <Link href="/pages/signup?role=employer">Бүртгүүлэх</Link>
               </p>
             </div>
 
@@ -153,15 +153,15 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -169,11 +169,11 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үгээ оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -181,7 +181,7 @@ export default function Login() {
               valuePropName="checked"
             >
               <Checkbox>
-                Remember me
+                Сануулах
               </Checkbox>
             </Form.Item>
 
@@ -191,7 +191,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              Log In
+              Нэвтрэх
             </Button>
           </Form>
       </div>
@@ -199,15 +199,15 @@ export default function Login() {
   },
   {
     key: '3',
-    label: 'Teacher',
+    label: 'Багш',
     children: (
       <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Log In.</h2>
+              <h2>Нэвтрэх.</h2>
               <p>
-                Dont have  any account?{" "}
-                <Link href="/pages/signup?role=teacher">Sign Up</Link>
+                Бүртгэлгүй юу?{" "}
+                <Link href="/pages/signup?role=teacher">Бүртгүүлэх</Link>
               </p>
             </div>
 
@@ -223,15 +223,15 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -239,11 +239,11 @@ export default function Login() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үгээ оруулна уу!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -251,7 +251,7 @@ export default function Login() {
               valuePropName="checked"
             >
               <Checkbox>
-                Remember me
+                Сануулах
               </Checkbox>
             </Form.Item>
 
@@ -261,7 +261,7 @@ export default function Login() {
               block
               className={styles.submitBtn}
             >
-              Log In
+              Нэвтрэх
             </Button>
           </Form>
         </div>

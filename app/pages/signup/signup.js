@@ -139,15 +139,15 @@ export default function SignUp() {
   const items = [
     {
       key: '1',
-      label: 'Student',
+      label: 'Оюутан',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Хаяг үүсгэх.</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Хаял аль хэдийн үүссэн байна{" "}
-                <Link href="/pages/login?role=student">Log In</Link>
+                Бүртгэлтэй юу ? {" "}
+                <Link href="/pages/login?role=student">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -190,15 +190,15 @@ export default function SignUp() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your email!",
+                  message: "Имэйл хаягаа оруулна уу!",
                 },
                 {
                   type: "email",
-                  message: "Invalid email!",
+                  message: "Буруу имэйл!",
                 },
               ]}
             >
-              <Input placeholder="Email address" />
+              <Input placeholder="Имэйл хаяг" />
             </Form.Item>
 
             <Form.Item
@@ -206,11 +206,11 @@ export default function SignUp() {
               rules={[
                 {
                   required: true,
-                  message: "Please input your password!",
+                  message: "Нууц үгээ бичнэ үү!",
                 },
               ]}
             >
-              <Input.Password placeholder="Password" />
+              <Input.Password placeholder="Нууц үг" />
             </Form.Item>
 
             <Form.Item
@@ -219,7 +219,7 @@ export default function SignUp() {
               rules={[
                 {
                   required: true,
-                  message: "Please confirm your password!",
+                  message: "Нууц үгээ давтаж бичнэ үү!",
                 },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
@@ -231,13 +231,13 @@ export default function SignUp() {
                     }
 
                     return Promise.reject(
-                      new Error("Passwords do not match!")
+                      new Error("Нууц үг буруу байна!")
                     );
                   },
                 }),
               ]}
             >
-              <Input.Password placeholder="Confirm Password" />
+              <Input.Password placeholder="Нууц үгээ давтан оруулах" />
             </Form.Item>
 
             <Form.Item
@@ -250,15 +250,15 @@ export default function SignUp() {
                       ? Promise.resolve()
                       : Promise.reject(
                         new Error(
-                          "Please accept Terms of Services"
+                          "Үйлчилгээний нөхцөлийг зөвшөөрнө үү!"
                         )
                       ),
                 },
               ]}
             >
               <Checkbox>
-                I&apos;ve read and agree with your{" "}
-                  <Link href="/">Terms of Services</Link>
+                  <Link href="/">Үйлчилгээний нөхцөл</Link>
+                  {" "} -тэй танилцаж зөвшөөрсөн.
               </Checkbox>
             </Form.Item>
 
@@ -268,7 +268,7 @@ export default function SignUp() {
               block
               className={styles.submitBtn}
             >
-              Хаяг үүсгэх
+              Бүртгүүлэх
             </Button>
           </Form>
         </div>
@@ -276,15 +276,15 @@ export default function SignUp() {
     },
     {
       key: '2',
-      label: 'Employer',
+      label: 'Байгууллага',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Хаяг үүсгэх.</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Хаял аль хэдийн үүссэн байна{" "}
-                <Link href="/pages/login?role=employer">Log In</Link>
+                Бүртгэлтэй юу ? {" "}
+                <Link href="/pages/login?role=employer">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -315,17 +315,18 @@ export default function SignUp() {
               </Form.Item>
 
               <Form.Item
-                name="username"
-                className={styles.half}
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your username!",
-                  },
-                ]}
+                  name="industry"
+                  rules={[
+                      {
+                          required: true,
+                          whitespace: true,
+                          message: "Салбараа оруулна уу",
+                      },
+                  ]}
               >
-                <Input placeholder="Industry" />
+                  <Input placeholder="Салбар" />
               </Form.Item>
+
             </div>
 
             <Form.Item
@@ -343,19 +344,6 @@ export default function SignUp() {
             >
               <Input placeholder="Имайл хаяг" />
             </Form.Item>
-              <Form.Item
-                  name="industry"
-                  rules={[
-                      {
-                          required: true,
-                          whitespace: true,
-                          message: "Салбараа оруулна уу",
-                      },
-                  ]}
-              >
-                  <Input placeholder="Салбар" />
-              </Form.Item>
-
             <Form.Item
               name="password"
               rules={[
@@ -412,8 +400,8 @@ export default function SignUp() {
               ]}
             >
               <Checkbox>
-                Би уншиж танилцсан{" "}
-                <Link href="/">Үйлчилгээний нөхцөл</Link>
+                  <Link href="/">Үйлчилгээний нөхцөл</Link>
+                  {" "} -тэй танилцаж зөвшөөрсөн.
               </Checkbox>
             </Form.Item>
 
@@ -423,7 +411,7 @@ export default function SignUp() {
                   block
                   className={styles.submitBtn}
               >
-                  Хаяг үүсгэх
+                  Бүртгүүлэх
               </Button>
           </Form>
         </div>
@@ -431,15 +419,15 @@ export default function SignUp() {
     },
     {
       key: '3',
-      label: 'Teacher',
+      label: 'Багш',
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
-              <h2>Хаяг үүсгэх</h2>
+              <h2>Бүртгэл үүсгэх.</h2>
               <p>
-                Бүртгэлтэй хаяг байгаа{" "}
-                <Link href="/pages/login?role=teacher">Бүртгүүлэх</Link>
+                Бүртгэлтэй юу ? {" "}
+                <Link href="/pages/login?role=teacher">Нэвтрэх</Link>
               </p>
             </div>
 
@@ -470,7 +458,7 @@ export default function SignUp() {
                 rules={[
                   {
                     required: true,
-                    message: "Нэээ оруулна уу",
+                    message: "Нэрээ оруулна уу",
                   },
                 ]}
               >
@@ -530,7 +518,7 @@ export default function SignUp() {
                 }),
               ]}
             >
-              <Input.Password placeholder="Нууц үгээ давтан оруулна уу" />
+              <Input.Password placeholder="Нууц үгээ давтан оруулах" />
             </Form.Item>
 
             <Form.Item
@@ -550,8 +538,8 @@ export default function SignUp() {
               ]}
             >
               <Checkbox>
-                  Би үйлчилгээний нөхцөлтэй танилцаж, зөвшөөрч байна.{" "}
-                <Link href="/">Үйлчилгээний нөхцөл</Link>
+                  <Link href="/">Үйлчилгээний нөхцөл</Link>
+                  {" "} -тэй танилцаж зөвшөөрсөн.
               </Checkbox>
             </Form.Item>
 
@@ -561,7 +549,7 @@ export default function SignUp() {
               block
               className={styles.submitBtn}
             >
-              Хаяг үүсгэх
+              Бүртгүүлэх
             </Button>
           </Form>
         </div>

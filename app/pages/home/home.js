@@ -27,11 +27,11 @@ export default function Home() {
     <div className={styles.main}>
       <div className={styles.left}>
         <h1>
-          Find a job that suits your interests & skills
+          Өөрийн сонирхол, ур чадварт тохирсон ажил олоорой
         </h1>
 
         <p className={styles.description}>
-          This is the main content of the home page.
+          Энэ бол манай вэбсайтын гол агуулга юм.
         </p>
 
         
