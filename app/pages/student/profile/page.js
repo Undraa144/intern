@@ -274,7 +274,10 @@ export default function ProfilePage() {
               <Text type="secondary">{profile.major}</Text>
 
               <div className={styles.tags}>
-                <Tag color="blue">GPA {profile.gpa}</Tag>
+                <Tag color="green">Сургууль : {profile.university}</Tag>
+                <Tag color="yellow">Курс : {profile.courseYear}</Tag>
+                <Tag color="blue">GPA : {profile.gpa}</Tag>
+                                
               </div>
             </div>
 
