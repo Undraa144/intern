@@ -34,6 +34,19 @@ const { Title, Text } = Typography
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
 
+const isSameStudent = (studentId, currentStudentId) => {
+  const ownerId = Number(studentId);
+  const viewerId = Number(currentStudentId);
+
+  return (
+    Number.isInteger(ownerId) &&
+    ownerId > 0 &&
+    Number.isInteger(viewerId) &&
+    viewerId > 0 &&
+    ownerId === viewerId
+  );
+};
+
 const toWebsiteUrl = (website) =>
   website && /^https?:\/\//i.test(website) ? website : `https://${website}`;
 
@@ -253,6 +266,12 @@ const handleCreateReview = async () => {
 const handleUpdateReview = async () => {
   const organizationReviewId = editingReview?.organizationReviewId;
 
+  if (!isSameStudent(editingReview?.studentId, currentStudentId)) {
+    alert("Зөвхөн өөрийн өгсөн үнэлгээг засах боломжтой.");
+    closeReviewModal();
+    return;
+  }
+
   if (!organizationReviewId) {
     alert("Засах үнэлгээний ID олдсонгүй.");
     return;
@@ -271,6 +290,7 @@ const handleUpdateReview = async () => {
           rating: rate,
           comment: comment.trim(),
           isAnonymous,
+          organizationId,
         }),
       }
     );
@@ -312,6 +332,11 @@ const openNewReview = () => {
 };
 
 const openEditReview = (review) => {
+  if (!isSameStudent(review?.studentId, currentStudentId)) {
+    alert("Зөвхөн өөрийн өгсөн үнэлгээг засах боломжтой.");
+    return;
+  }
+
   setEditingReview(review);
   setRate(review.rate);
   setComment(review.comment);
@@ -320,6 +345,15 @@ const openEditReview = (review) => {
 };
 
 const handleDeleteReview = (review) => {
+  if (!isSameStudent(review?.studentId, currentStudentId)) {
+    Modal.warning({
+      title: "Үнэлгээг устгах боломжгүй",
+      content: "Зөвхөн өөрийн өгсөн үнэлгээг устгах боломжтой.",
+      okText: "Ойлголоо",
+    });
+    return;
+  }
+
   if (!review?.organizationReviewId) {
     Modal.warning({
       title: "Үнэлгээний ID олдсонгүй",
@@ -341,7 +375,11 @@ const handleConfirmDelete = async () => {
   try {
     const response = await fetch(
       `/api/reviews/${encodeURIComponent(organizationReviewId)}`,
-      { method: "DELETE" }
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organizationId }),
+      }
     );
 
     await parseReviewResponse(response, "Үнэлгээг устгаж чадсангүй.");
@@ -576,7 +614,7 @@ reviews.reduce((sum, item) => sum + item.rate, 0) / reviews.length
                   {item.date}
                 </Text>
 
-                {Number(item.studentId) === currentStudentId && (
+                {isSameStudent(item.studentId, currentStudentId) && (
                   <Space style={{ marginTop: 12 }}>
                     <Button
                       size="small"

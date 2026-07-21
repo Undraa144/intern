@@ -62,6 +62,50 @@ async function refreshAccessToken(token) {
   return response.ok ? data.token : null;
 }
 
+async function getCurrentStudentId(token) {
+  const response = await fetch(`${API_BASE}/api/auth/myId`, {
+    headers: { Authorization: `Bearer ${getBearerToken(token)}` },
+    cache: "no-store",
+  });
+  const payload = await response.json().catch(() => null);
+  const studentId = Number(
+    payload?.studentId ?? payload?.data?.studentId ?? payload?.id ?? payload
+  );
+
+  return response.ok && Number.isInteger(studentId) && studentId > 0
+    ? studentId
+    : null;
+}
+
+async function ownsReview(token, organizationId, organizationReviewId) {
+  if (!organizationId) return false;
+
+  const [studentId, reviewsResponse] = await Promise.all([
+    getCurrentStudentId(token),
+    fetch(
+      `${API_BASE}/api/reviews/org/${encodeURIComponent(organizationId)}`,
+      { cache: "no-store" }
+    ),
+  ]);
+
+  if (!studentId || !reviewsResponse.ok) return false;
+
+  const payload = await reviewsResponse.json().catch(() => []);
+  const reviews = Array.isArray(payload)
+    ? payload
+    : payload?.data ?? payload?.reviews ?? [];
+
+  return Array.isArray(reviews) && reviews.some((review) => {
+    const reviewId = review.organizationReviewId ?? review.id;
+    const ownerId = review.studentId ?? review.student?.studentId;
+
+    return (
+      String(reviewId) === String(organizationReviewId) &&
+      Number(ownerId) === studentId
+    );
+  });
+}
+
 export async function POST(request, { params }) {
   const cookieStore = await cookies();
   let token = getBearerToken(cookieStore.get("token")?.value);
@@ -145,11 +189,19 @@ export async function PUT(request, { params }) {
     const payload = await request.json();
     const rating = Number(payload.rating);
     const comment = payload.comment?.trim();
+    const organizationId = payload.organizationId;
 
     if (!organizationReviewId || !Number.isInteger(rating) || rating < 1 || rating > 5 || !comment) {
       return Response.json(
         { message: "Үнэлгээний ID, 1-5 од болон сэтгэгдэлээ оруулна уу." },
         { status: 400 }
+      );
+    }
+
+    if (!(await ownsReview(token, organizationId, organizationReviewId))) {
+      return Response.json(
+        { message: "Зөвхөн өөрийн өгсөн үнэлгээг засах боломжтой." },
+        { status: 403 }
       );
     }
 
@@ -193,7 +245,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-export async function DELETE(_request, { params }) {
+export async function DELETE(request, { params }) {
   const { organizationId: organizationReviewId } = await params;
   const cookieStore = await cookies();
   let token = getBearerToken(cookieStore.get("token")?.value);
@@ -203,6 +255,21 @@ export async function DELETE(_request, { params }) {
   }
 
   try {
+    const payload = await request.json().catch(() => ({}));
+
+    if (
+      !(await ownsReview(
+        token,
+        payload.organizationId,
+        organizationReviewId
+      ))
+    ) {
+      return Response.json(
+        { message: "Зөвхөн өөрийн өгсөн үнэлгээг устгах боломжтой." },
+        { status: 403 }
+      );
+    }
+
     let response = await deleteReview(organizationReviewId, token);
 
     if (response.status === 401 || response.status === 403) {
