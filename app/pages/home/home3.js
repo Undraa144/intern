@@ -23,7 +23,7 @@ import {
 import styles from "./home3.module.scss";
 
 const { Title, Text } = Typography;
-
+//
 const cardColors = [
   "#ece9ff",
   "#e9faf6",
