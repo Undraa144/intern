@@ -207,9 +207,21 @@ export default function ReportPage() {
     setIsSubmitting(true);
 
     try {
-      const authResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+      function getCookie(name) {
+        return document.cookie
+            .split("; ")
+            .find(row => row.startsWith(name + "="))
+            ?.split("=")[1];
+      }
+
+      const token = getCookie("token");
+      const authResponse = await fetch(`${API_BASE}/api/users/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!authResponse.ok) {
@@ -241,9 +253,8 @@ export default function ReportPage() {
           throw new Error(data.message || "Тайланг засахад алдаа гарлаа.");
         }
       } else {
-        const reportResponse = await fetch("/api/reports", {
+        const reportResponse = await fetch(`${API_BASE}/api/reports`, {
           method: "POST",
-          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
