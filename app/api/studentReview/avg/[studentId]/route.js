@@ -18,40 +18,22 @@ function normalizeToken(value) {
     .trim();
 }
 
-export async function GET() {
-  try {
-    const response = await fetch(`${API_BASE}/api/postings`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    const responseBody = await response.text();
-
-    return new Response(responseBody, {
-      status: response.status,
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "application/json",
-      },
-    });
-  } catch (error) {
-    console.error("Loading postings failed:", error);
-    return Response.json(
-      { message: "Заруудыг серверээс авч чадсангүй." },
-      { status: 502 }
-    );
-  }
+function isValidId(value) {
+  return Number.isInteger(Number(value)) && Number(value) > 0;
 }
 
-async function createPosting(token, body) {
-  return fetch(`${API_BASE}/api/postings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body,
-    cache: "no-store",
-  });
+function getStudentAverageRate(token, studentId) {
+  return fetch(
+    `${API_BASE}/api/studentReview/avg/${encodeURIComponent(studentId)}`,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    }
+  );
 }
 
 async function refreshAccessToken(token) {
@@ -66,7 +48,26 @@ async function refreshAccessToken(token) {
   return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+function proxyResponse(response, body) {
+  return new Response(body, {
+    status: response.status,
+    headers: {
+      "Content-Type":
+        response.headers.get("content-type") || "application/json",
+    },
+  });
+}
+
+export async function GET(_request, { params }) {
+  const { studentId } = await params;
+
+  if (!isValidId(studentId)) {
+    return Response.json(
+      { message: "Оюутны ID буруу байна." },
+      { status: 400 }
+    );
+  }
+
   const cookieStore = await cookies();
   let token = normalizeToken(cookieStore.get("token")?.value);
 
@@ -75,8 +76,7 @@ export async function POST(request) {
   }
 
   try {
-    const body = await request.text();
-    let response = await createPosting(token, body);
+    let response = await getStudentAverageRate(token, studentId);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
@@ -91,21 +91,18 @@ export async function POST(request) {
 
       token = refreshedToken;
       cookieStore.set("token", token, cookieOptions);
-      response = await createPosting(token, body);
+      response = await getStudentAverageRate(token, studentId);
     }
 
-    const responseBody = await response.text();
+    if (response.status === 401) {
+      cookieStore.delete("token");
+    }
 
-    return new Response(responseBody, {
-      status: response.status,
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "text/plain",
-      },
-    });
+    return proxyResponse(response, await response.text());
   } catch (error) {
-    console.error("Posting creation failed:", error);
+    console.error("Student average rate request failed:", error);
     return Response.json(
-      { message: "Зарыг серверт илгээж чадсангүй." },
+      { message: "Оюутны үнэлгээний голчийг серверээс авч чадсангүй." },
       { status: 502 }
     );
   }

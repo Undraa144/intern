@@ -18,16 +18,14 @@ function normalizeToken(value) {
     .trim();
 }
 
-function createApplication(token, body, path = "applicatioins") {
-  return fetch(`${API_BASE}/api/${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body,
-    cache: "no-store",
-  });
+function getApplication(token, id) {
+  return fetch(
+    `${API_BASE}/api/students/application/${encodeURIComponent(id)}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    }
+  );
 }
 
 async function refreshAccessToken(token) {
@@ -38,39 +36,26 @@ async function refreshAccessToken(token) {
     cache: "no-store",
   });
   const data = await response.json().catch(() => ({}));
-
   return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+export async function GET(_request, { params }) {
+  const { id } = await params;
   const cookieStore = await cookies();
-  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
   }
 
   try {
-    const body = await request.text();
-    let response = await createApplication(token, body);
-
-    if (response.status === 401 || response.status === 404) {
-      const correctlySpelledResponse = await createApplication(
-        token,
-        body,
-        "applications"
-      );
-
-      if (correctlySpelledResponse.status !== 404) {
-        response = correctlySpelledResponse;
-      }
-    }
+    let response = await getApplication(token, id);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
@@ -78,24 +63,11 @@ export async function POST(request) {
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
-      response = await createApplication(token, body);
-
-      if (response.status === 401 || response.status === 404) {
-        const correctlySpelledResponse = await createApplication(
-          token,
-          body,
-          "applications"
-        );
-
-        if (correctlySpelledResponse.status !== 404) {
-          response = correctlySpelledResponse;
-        }
-      }
+      cookieStore.set("token", token, cookieOptions);
+      response = await getApplication(token, id);
     }
 
     const responseBody = await response.text();
-
     return new Response(responseBody, {
       status: response.status,
       headers: {
@@ -103,9 +75,9 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("Application creation failed:", error);
+    console.error("Student application detail fetch failed:", error);
     return Response.json(
-      { message: "Хүсэлтийг серверт илгээж чадсангүй." },
+      { message: "Хүсэлтийн дэлгэрэнгүй мэдээллийг авч чадсангүй." },
       { status: 502 }
     );
   }

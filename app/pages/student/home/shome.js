@@ -218,10 +218,26 @@ export default function SHome({ searchText = "" }) {
                   className={styles.logo}
                 />
 
+<<<<<<< HEAD
                 <h3>{job.title}</h3>
                 <Link href="/pages/student/company">
                   <p>{job.company}</p>
                 </Link>
+=======
+              <h3>{job.title}</h3> 
+              {job.organizationId ? (
+                <Link
+                  href={{
+                    pathname: "/pages/student/company",
+                    query: { organizationId: job.organizationId },
+                  }}
+                >
+                  <p>{job.company}</p>
+                </Link>
+              ) : (
+                <p>{job.company}</p>
+              )}
+>>>>>>> origin/saina
 
                 <div className={styles.tags}>
                   <span>Part Time</span>

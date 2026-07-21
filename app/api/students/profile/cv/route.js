@@ -10,17 +10,21 @@ const cookieOptions = {
   maxAge: 60 * 60 * 24 * 30,
 };
 
-function getBearerToken(value) {
-  const token = value?.trim().replace(/^['"]|['"]$/g, "");
-  return token?.replace(/^Bearer\s+/i, "").trim();
+function normalizeToken(value) {
+  return value
+    ?.trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/^Bearer\s+/i, "")
+    .trim();
 }
 
-async function uploadFile(token, formData) {
-  return fetch(`${API_BASE}/api/reports/file`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getBearerToken(token)}`,
-    },
+function uploadResume(token, file) {
+  const formData = new FormData();
+  formData.append("file", file, file.name);
+
+  return fetch(`${API_BASE}/api/students/profile/cv`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
     body: formData,
     cache: "no-store",
   });
@@ -35,12 +39,12 @@ async function refreshAccessToken(token) {
   });
   const data = await response.json().catch(() => ({}));
 
-  return response.ok ? data.token : null;
+  return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+export async function PUT(request) {
   const cookieStore = await cookies();
-  let token = getBearerToken(cookieStore.get("token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json(
@@ -55,18 +59,12 @@ export async function POST(request) {
 
     if (!(file instanceof File) || file.size === 0) {
       return Response.json(
-        { message: "Тайлангийн файл сонгоно уу." },
+        { message: "Resume файл сонгоно уу." },
         { status: 400 }
       );
     }
 
-    const createFormData = () => {
-      const formData = new FormData();
-      formData.append("file", file, file.name);
-      return formData;
-    };
-
-    let response = await uploadFile(token, createFormData());
+    let response = await uploadResume(token, file);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
@@ -74,22 +72,18 @@ export async function POST(request) {
       if (!refreshedToken) {
         cookieStore.delete("token");
         return Response.json(
-          { message: "Нэвтрэх хугацаа дууссан байна." },
+          { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
         );
       }
 
-      token = getBearerToken(refreshedToken);
+      token = refreshedToken;
       cookieStore.set("token", token, cookieOptions);
-      response = await uploadFile(token, createFormData());
+      response = await uploadResume(token, file);
     }
 
     if (response.status === 401) {
       cookieStore.delete("token");
-      return Response.json(
-        { message: "Нэвтрэх эрх хүчингүй байна. Дахин нэвтэрнэ үү." },
-        { status: 401 }
-      );
     }
 
     const responseBody = await response.text();
@@ -102,9 +96,9 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error("Report file upload failed:", error);
+    console.error("Student resume upload failed:", error);
     return Response.json(
-      { message: "Тайлангийн файлыг серверт илгээж чадсангүй." },
+      { message: "Resume файлыг серверт илгээж чадсангүй." },
       { status: 502 }
     );
   }

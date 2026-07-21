@@ -55,7 +55,7 @@ async function refreshAccessToken(token) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
@@ -68,7 +68,7 @@ export async function GET() {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
@@ -76,12 +76,12 @@ export async function GET() {
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await getOrganizationProfile(token);
     }
 
     if (response.status === 401) {
-      cookieStore.delete("auth_token");
+      cookieStore.delete("token");
     }
 
     const body = await response.text();
@@ -103,7 +103,7 @@ export async function GET() {
 
 export async function PUT(request) {
   const cookieStore = await cookies();
-  let token = normalizeToken(cookieStore.get("auth_token")?.value);
+  let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
@@ -117,7 +117,7 @@ export async function PUT(request) {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү." },
           { status: 401 }
@@ -125,12 +125,12 @@ export async function PUT(request) {
       }
 
       token = refreshedToken;
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await updateOrganizationProfile(token, body);
     }
 
     if (response.status === 401) {
-      cookieStore.delete("auth_token");
+      cookieStore.delete("token");
     }
 
     const responseBody = await response.text();

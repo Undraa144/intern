@@ -114,3 +114,56 @@
   border-top: 1px solid #eee;
   color: #888;
 }
+
+.titleButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.detailLoading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.jobInfoCard {
+  margin: 20px 0;
+  background: #f7f9fc;
+}
+
+.companyLink {
+  display: inline-block;
+  color: #667085;
+
+  &:hover {
+    color: #1677ff;
+    text-decoration: underline;
+  }
+}
+
+.detailTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.applicationInfoCard {
+  background: #faf8ff;
+  border-color: #e1dcff;
+}
+
+.coverLetter {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -15,6 +15,17 @@ function getBearerToken(value) {
   return token?.replace(/^Bearer\s+/i, "").trim();
 }
 
+async function getReports(token) {
+  return fetch(`${API_BASE}/api/reports`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${getBearerToken(token)}`,
+    },
+    cache: "no-store",
+  });
+}
+
 async function createReport(token, body) {
   return fetch(`${API_BASE}/api/reports`, {
     method: "POST",
@@ -39,9 +50,57 @@ async function refreshAccessToken(token) {
   return response.ok ? data.token : null;
 }
 
+export async function GET() {
+  const cookieStore = await cookies();
+  let token = getBearerToken(cookieStore.get("token")?.value);
+
+  if (!token) {
+    return Response.json(
+      { message: "Нэвтрэх шаардлагатай." },
+      { status: 401 }
+    );
+  }
+
+  try {
+    let response = await getReports(token);
+
+    if (response.status === 401) {
+      const refreshedToken = await refreshAccessToken(token);
+
+      if (!refreshedToken) {
+        cookieStore.delete("token");
+        return Response.json(
+          { message: "Нэвтрэх хугацаа дууссан байна." },
+          { status: 401 }
+        );
+      }
+
+      token = getBearerToken(refreshedToken);
+      cookieStore.set("token", token, cookieOptions);
+      response = await getReports(token);
+    }
+
+    const responseBody = await response.text();
+
+    return new Response(responseBody, {
+      status: response.status,
+      headers: {
+        "Content-Type":
+          response.headers.get("content-type") || "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("Reports fetch failed:", error);
+    return Response.json(
+      { message: "Тайлангийн жагсаалтыг серверээс авч чадсангүй." },
+      { status: 502 }
+    );
+  }
+}
+
 export async function POST(request) {
   const cookieStore = await cookies();
-  let token = getBearerToken(cookieStore.get("auth_token")?.value);
+  let token = getBearerToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json(
@@ -71,7 +130,7 @@ export async function POST(request) {
       const refreshedToken = await refreshAccessToken(token);
 
       if (!refreshedToken) {
-        cookieStore.delete("auth_token");
+        cookieStore.delete("token");
         return Response.json(
           { message: "Нэвтрэх хугацаа дууссан байна." },
           { status: 401 }
@@ -79,12 +138,12 @@ export async function POST(request) {
       }
 
       token = getBearerToken(refreshedToken);
-      cookieStore.set("auth_token", token, cookieOptions);
+      cookieStore.set("token", token, cookieOptions);
       response = await createReport(token, body);
     }
 
     if (response.status === 401) {
-      cookieStore.delete("auth_token");
+      cookieStore.delete("token");
       return Response.json(
         { message: "Нэвтрэх эрх хүчингүй байна. Дахин нэвтэрнэ үү." },
         { status: 401 }

@@ -42,7 +42,7 @@ export async function GET(_request, { params }) {
 export async function DELETE(request, { params }) {
   const { id } = await params;
   const cookieStore = await cookies();
-  const token = normalizeToken(cookieStore.get("auth_token")?.value);
+  const token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });

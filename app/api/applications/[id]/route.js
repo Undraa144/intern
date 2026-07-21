@@ -18,40 +18,19 @@ function normalizeToken(value) {
     .trim();
 }
 
-export async function GET() {
-  try {
-    const response = await fetch(`${API_BASE}/api/postings`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    const responseBody = await response.text();
-
-    return new Response(responseBody, {
-      status: response.status,
+function createApplication(token, internshipId, body) {
+  return fetch(
+    `${API_BASE}/api/applications/${encodeURIComponent(internshipId)}`,
+    {
+      method: "POST",
       headers: {
-        "Content-Type": response.headers.get("content-type") || "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-    });
-  } catch (error) {
-    console.error("Loading postings failed:", error);
-    return Response.json(
-      { message: "Заруудыг серверээс авч чадсангүй." },
-      { status: 502 }
-    );
-  }
-}
-
-async function createPosting(token, body) {
-  return fetch(`${API_BASE}/api/postings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body,
-    cache: "no-store",
-  });
+      body,
+      cache: "no-store",
+    }
+  );
 }
 
 async function refreshAccessToken(token) {
@@ -66,17 +45,25 @@ async function refreshAccessToken(token) {
   return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+export async function POST(request, { params }) {
+  const { id } = await params;
   const cookieStore = await cookies();
   let token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
-    return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });
+    return Response.json(
+      { message: "Нэвтрэх шаардлагатай." },
+      { status: 401 }
+    );
   }
 
   try {
-    const body = await request.text();
-    let response = await createPosting(token, body);
+    const payload = await request.json();
+    const body = JSON.stringify({
+      coverLetter: payload.coverLetter,
+      studentId: payload.studentId,
+    });
+    let response = await createApplication(token, id, body);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
@@ -91,7 +78,7 @@ export async function POST(request) {
 
       token = refreshedToken;
       cookieStore.set("token", token, cookieOptions);
-      response = await createPosting(token, body);
+      response = await createApplication(token, id, body);
     }
 
     const responseBody = await response.text();
@@ -99,13 +86,13 @@ export async function POST(request) {
     return new Response(responseBody, {
       status: response.status,
       headers: {
-        "Content-Type": response.headers.get("content-type") || "text/plain",
+        "Content-Type": response.headers.get("content-type") || "application/json",
       },
     });
   } catch (error) {
-    console.error("Posting creation failed:", error);
+    console.error("Application creation failed:", error);
     return Response.json(
-      { message: "Зарыг серверт илгээж чадсангүй." },
+      { message: "Хүсэлтийг серверт илгээж чадсангүй." },
       { status: 502 }
     );
   }

@@ -4,7 +4,7 @@ const API_BASE = process.env.API_BASE || "http://localhost:8088";
 
 export async function POST() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get("token")?.value;
 
   if (!token) {
     return Response.json(
@@ -23,11 +23,11 @@ export async function POST() {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || !data.token) {
-      cookieStore.delete("auth_token");
+      cookieStore.delete("token");
       return Response.json(data, { status: response.status || 401 });
     }
 
-    cookieStore.set("auth_token", data.token, {
+    cookieStore.set("token", data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

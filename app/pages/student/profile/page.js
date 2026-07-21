@@ -13,6 +13,7 @@ import {
   Col,
   Typography,
   Rate,
+  Upload,
 } from "antd";
 
 import {
@@ -22,23 +23,74 @@ import {
   FileTextOutlined,
   UserOutlined,
   StarFilled,
+  UploadOutlined,
 } from "@ant-design/icons";
 
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
 import { parseResponseBody } from "@/app/utils/response-body.mjs";
-import { updateStudentProfile } from "@/app/utils/student-profile-api.mjs";
+import { getStudentIdFromResponse } from "@/app/utils/application-payload.mjs";
+import {
+  updateStudentProfile,
+  uploadStudentResume,
+} from "@/app/utils/student-profile-api.mjs";
 import { buildStudentProfilePayload } from "@/app/utils/student-profile-payload.mjs";
+
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
+<<<<<<< HEAD
 const BASE_API = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+=======
+function formatListForInput(value) {
+  return Array.isArray(value) ? value.join(", ") : value ?? "";
+}
+
+function getReviewList(payload) {
+  const value = payload?.data ?? payload?.reviews ?? payload?.content ?? payload;
+  const list = Array.isArray(value)
+    ? value
+    : value?.content ?? value?.reviews ?? [];
+
+  return Array.isArray(list) ? list : [];
+}
+
+function normalizeReview(review) {
+  return {
+    name:
+      review.name ??
+      review.organizationName ??
+      review.companyName ??
+      "Нэргүй",
+    rate: Number(review.rate ?? review.score ?? review.rating ?? 0),
+    comment: review.Comment ?? review.comment ?? "",
+    createdAt: review.createdAt ?? review.date ?? "",
+  };
+}
+
+function getAverageRate(payload) {
+  const value =
+    payload?.data ??
+    payload?.averageRate ??
+    payload?.avgRate ??
+    payload?.average ??
+    payload;
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue) ? numericValue : 0;
+}
+>>>>>>> origin/saina
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
   const [reviews, setReviews] = useState([]);
+<<<<<<< HEAD
   const [averageRate, setAverageRate] = useState();
+=======
+  const [averageRate, setAverageRate] = useState(0);
+>>>>>>> origin/saina
   const [profile, setProfile] = useState({
     fullName: "Батболдын Тэмүүлэн",
     major: "Програм хангамж",
@@ -58,6 +110,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const loadProfile = async () => {
       try {
+<<<<<<< HEAD
         function getCookie(name) {
           return document.cookie
             .split("; ")
@@ -68,15 +121,31 @@ export default function ProfilePage() {
         const token = getCookie("token");
         const response = await fetch(`${BASE_API}/api/students/profile`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
+=======
+        const response = await fetch("/api/students/profile", {
+          credentials: "include",
+          cache: "no-store",
+>>>>>>> origin/saina
         });
         const data = await parseResponseBody(response);
 
         if (!response.ok || !data) {
+<<<<<<< HEAD
           alert("Profile request failed");
           return;
+=======
+          throw new Error(data?.message || "Profile request failed");
+>>>>>>> origin/saina
         }
 
+        const student = data.data ?? data.student ?? data.profile ?? data;
+        const user = student.user ?? {};
+        const teacher = student.teacher ?? {};
+        const firstName = student.firstName ?? user.firstName ?? "";
+        const lastName = student.lastName ?? user.lastName ?? "";
+
         setProfile({
+<<<<<<< HEAD
           fullName: data.fullName || "Батболдын Тэмүүлэн",
           major: data.major || "Програм хангамж",
           phone: data.phone || "99112233",
@@ -90,12 +159,110 @@ export default function ProfilePage() {
           languages: data.languages || "Монгол, English",
           teacherName: data.teacherName || "",
           teacherPhone: data.teacherPhone || "",
+=======
+          fullName:
+            student.fullName ??
+            user.fullName ??
+            [firstName, lastName].filter(Boolean).join(" "),
+          major: student.major?.name ?? student.major ?? "",
+          university: student.university?.name ?? student.university ?? "",
+          courseYear: student.courseYear ?? "",
+          phone: student.phone ?? user.phone ?? "",
+          email: student.email ?? user.email ?? "",
+          gpa: student.gpa ?? "",
+          bio: student.shortBio ?? student.bio ?? "",
+          resume: student.resume ?? student.resumeUrl ?? "",
+          skills: formatListForInput(student.skills),
+          languages: formatListForInput(student.language),
+          teacherName:
+            student.teacherName ??
+            [teacher.firstName, teacher.lastName].filter(Boolean).join(" "),
+          teacherPhone: student.teacherPhone ?? teacher.phone ?? "",
+>>>>>>> origin/saina
         });
       } catch (error) {
         console.error("Error loading profile:", error);
       }
     };
+<<<<<<< HEAD
 
+=======
+    const loadStudentId = async () => {
+      const response = await fetch("/api/auth/myId", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await parseResponseBody(response);
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Оюутны ID авч чадсангүй.");
+      }
+
+      const studentId = getStudentIdFromResponse(data);
+
+      if (!studentId) {
+        throw new Error("Оюутны ID буруу байна.");
+      }
+
+      return studentId;
+    };
+
+    const loadReview = async (studentId) =>{
+      try {
+        const response = await fetch(`/api/studentReview/${studentId}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const data = await parseResponseBody(response);
+
+        if (!response.ok || !data) {
+          alert(data?.message || "review хүсэлт дээр алдаа гарлаа");
+          return;
+        }
+
+        setReviews(getReviewList(data).map(normalizeReview));
+      }
+      catch (e){
+        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
+      }
+    };
+
+    const loadAvgRate = async (studentId) =>{
+      try {
+        const response = await fetch(`/api/studentReview/avg/${studentId}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const data = await parseResponseBody(response);
+
+        if (!response.ok || data === null) {
+          alert(data?.message || "үнэлгээний голч авах хүсэлт дээр алдаа гарлаа");
+          return;
+        }
+
+        setAverageRate(getAverageRate(data));
+
+      }
+      catch (e){
+        alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
+      }
+    };
+
+    const loadReviewData = async () => {
+      try {
+        const studentId = await loadStudentId();
+
+        await Promise.all([
+          loadReview(studentId),
+          loadAvgRate(studentId),
+        ]);
+      } catch (error) {
+        alert(error.message || "Сэтгэгдлийн мэдээллийг авч чадсангүй.");
+      }
+    };
+
+    loadReviewData();
+>>>>>>> origin/saina
     loadProfile();
   }, []);
 
@@ -112,6 +279,7 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
+<<<<<<< HEAD
       function getCookie(name) {
         return document.cookie
           .split("; ")
@@ -120,11 +288,20 @@ export default function ProfilePage() {
       }
 
       const token = getCookie("token");
+=======
+>>>>>>> origin/saina
       await updateStudentProfile({
-        baseApi: BASE_API,
-        token,
         payload,
       });
+
+      if (resumeFile) {
+        await uploadStudentResume({ file: resumeFile });
+        setProfile((currentProfile) => ({
+          ...currentProfile,
+          resume: resumeFile.name,
+        }));
+        setResumeFile(null);
+      }
 
       setIsEditing(false);
       alert("Профайлын мэдээлэл амжилттай хадгалагдлаа.");
@@ -301,9 +478,33 @@ export default function ProfilePage() {
 
             <div className={styles.bio}>
               <label>Resume (PDF)</label>
+<<<<<<< HEAD
               <p>
                 <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
               </p>
+=======
+
+              {isEditing ? (
+                <Upload
+                  accept="application/pdf,.pdf"
+                  beforeUpload={(file) => {
+                    setResumeFile(file);
+                    return false;
+                  }}
+                  fileList={resumeFile ? [resumeFile] : []}
+                  maxCount={1}
+                  onRemove={() => {
+                    setResumeFile(null);
+                  }}
+                >
+                  <Button icon={<UploadOutlined />}>Resume сонгох</Button>
+                </Upload>
+              ) : (
+                <p>
+                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+                </p>
+              )}
+>>>>>>> origin/saina
             </div>
 
             <div className={styles.bio}>
@@ -377,7 +578,11 @@ export default function ProfilePage() {
               Үнэлгээ, сэтгэгдэл{" "}
               {reviews.length > 0 && (
                 <Tag color="gold" style={{ marginLeft: 10 }}>
+<<<<<<< HEAD
                   Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+=======
+                Дундаж: {averageRate.toFixed(1)} <StarFilled style={{ color: "#fadb14" }} />
+>>>>>>> origin/saina
                 </Tag>
               )}
             </span>
@@ -388,6 +593,7 @@ export default function ProfilePage() {
             <Text type="secondary">Одоогоор сэтгэгдэл байхгүй.</Text>
           ) : (
             reviews.map((item, index) => (
+<<<<<<< HEAD
               <Card key={index} size="small" style={{ marginBottom: 15 }}>
                 <Tag>{item.organizationName}</Tag>
                 <div style={{ margin: "10px 0" }}>
@@ -395,6 +601,19 @@ export default function ProfilePage() {
                 </div>
                 <br />
               </Card>
+=======
+            <Card key={index} size="small" style={{ marginBottom: 15 }}>
+                <Tag>
+                  {item.name}
+                </Tag>
+                <div style={{ margin: "10px 0" }}>
+                <Rate disabled value={item.rate} />
+                </div>
+                <Text>{item.comment}</Text>
+                <br />
+                <Text type="secondary">{item.createdAt}</Text>
+            </Card>
+>>>>>>> origin/saina
             ))
           )}
         </Card>

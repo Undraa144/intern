@@ -31,49 +31,114 @@ import MainLayout from "@/app/MainLayout";
 const { Content } = Layout;
 const { Title, Text } = Typography;
 
+function getReportId(payload) {
+  if (typeof payload === "number" || typeof payload === "string") {
+    return payload;
+  }
+
+  const report = payload?.data ?? payload?.report ?? payload?.result ?? payload;
+
+  if (typeof report === "number" || typeof report === "string") {
+    return report;
+  }
+
+  return report?.reportId ?? report?.id;
+}
+
+function getFileName(payload) {
+  const file = payload?.data ?? payload?.file ?? payload?.result ?? payload;
+
+  if (typeof file === "string") {
+    return file;
+  }
+
+  return (
+    file?.fileName ??
+    file?.filename ??
+    file?.originalFileName ??
+    file?.originalFilename ??
+    file?.name
+  );
+}
+
 export default function ReportPage() {
   const [open, setOpen] = useState(false);
   const [editingReport, setEditingReport] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [form] = Form.useForm();
 
-  const [reports, setReports] = useState([
-    {
-      id: 1,
-      title: "1-р долоо хоногийн тайлан",
-      date: "2026.06.22",
-      status: "approved",
-      description:
-        "Багтай танилцаж, хөгжүүлэлтийн орчноо тохируулсан. Git workflow, code review процессстой танилцлаа.",
-      file: "week1-report.pdf",
-      comment: "Сайн эхэлсэн байна. Үргэлжлүүл.",
-    },
-    {
-      id: 2,
-      title: "2-р долоо хоногийн тайлан",
-      date: "2026.06.24",
-      status: "review",
-      description:
-        "Хэрэглэгчийн профайл хуудасны компонентийг хөгжүүлсэн. Эхний pull request нэгдсэн.",
-      file: "week2-report.pdf",
-    },
-  ]);
+  const [reports, setReports] = useState([]);
 
   useEffect(() => {
-    const savedReports =
-      JSON.parse(localStorage.getItem("reports")) || [];
+    let isActive = true;
 
-    if (savedReports.length > 0) {
-      // Restore client-only persisted data after the page has mounted.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setReports(savedReports);
+    async function loadReports() {
+      try {
+        const response = await fetch("/api/reports", {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          alert(result.message || "Тайлангийн жагсаалтыг авч чадсангүй.");
+        }
+
+        const data = Array.isArray(result)
+          ? result
+          : result.data ?? result.reports ?? result.content ?? [];
+        const reportList = Array.isArray(data)
+          ? data
+          : data.content ?? data.reports ?? [];
+
+        if (isActive) {
+          setReports(
+            reportList.map((report) => ({
+              ...report,
+              id: report.reportId ?? report.id,
+              title: report.title ?? report.reportTitle ?? "Гарчиггүй тайлан",
+              description: report.description ?? report.content ?? "",
+              date:
+                report.submittedAt ??
+                report.createdAt ??
+                report.reportDate ??
+                report.date,
+              status: String(
+                report.status ?? report.reportStatus ?? "review"
+              ).toLowerCase(),
+              file:
+                report.fileName ??
+                report.filename ??
+                report.originalFileName ??
+                report.originalFilename ??
+                report.file?.name ??
+                report.fileUrl ??
+                "",
+              comment:
+                report.teacherComment ??
+                report.feedback ??
+                report.comment,
+            }))
+          );
+        }
+      } catch (error) {
+        if (isActive) {
+          setReports([]);
+          message.error(error.message || "Тайлангийн жагсаалтыг авч чадсангүй.");
+        }
+      }
     }
+
+    loadReports();
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const saveReports = (data) => {
     setReports(data);
-    localStorage.setItem("reports", JSON.stringify(data));
   };
 
   const handleAdd = () => {
@@ -95,32 +160,82 @@ export default function ReportPage() {
     setDeleteTarget(report);
   };
 
-  const handleConfirmDelete = () => {
-    const updatedReports = reports.filter(
-      (report) => report.id !== deleteTarget.id
-    );
+  const handleConfirmDelete = async () => {
+    const reportId = deleteTarget?.id;
 
-    saveReports(updatedReports);
-    message.success("Тайлан устгагдлаа");
-    setDeleteTarget(null);
+    if (reportId === undefined || reportId === null || reportId === "") {
+      message.error("Устгах тайлангийн дугаар олдсонгүй.");
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(
+        `/api/reports/${reportId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alert(data.message || "Тайланг устгахад алдаа гарлаа.");
+      }
+     
+
+      const updatedReports = reports.filter(
+        (report) => report.id !== reportId
+      );
+
+      saveReports(updatedReports);
+      message.success("Тайлан устгагдлаа");
+      setDeleteTarget(null);
+    } catch (error) {
+      message.error(error.message);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSubmit = async (values) => {
     const selectedFile = values.file?.[0]?.originFileObj;
+    let reportId = editingReport?.id;
+    let uploadedFileName = selectedFile?.name;
 
+    console.log(values.title)
+    console.log(values.description)
     setIsSubmitting(true);
 
     try {
-      const authResponse = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
+      if (editingReport) {
+        if (reportId === undefined || reportId === null || reportId === "") {
+          alert("Засах тайлангийн дугаар олдсонгүй.");
+          return;
+        }
 
-      if (!authResponse.ok) {
-        alert("Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.");
-      }
+        const reportResponse = await fetch(
+          `/api/reports/${encodeURIComponent(reportId)}`,
+          {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title: values.title,
+              description: values.description,
+            }),
+          }
+        );
+        const data = await reportResponse.json().catch(() => ({}));
 
-      if (!editingReport) {
+        if (!reportResponse.ok) {
+          alert(data.message || "Тайланг засахад алдаа гарлаа.");
+          return;
+        }
+      } else {
         const reportResponse = await fetch("/api/reports", {
           method: "POST",
           credentials: "include",
@@ -133,36 +248,56 @@ export default function ReportPage() {
           }),
         });
 
+        const data = await reportResponse.json().catch(() => ({}));
+
         if (!reportResponse.ok) {
-          const data = await reportResponse.json().catch(() => ({}));
           if (reportResponse.status === 401) {
             alert(data.message || "Дахин нэвтэрнэ үү");
+            return;
           }
           alert(
-            data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа"
+            data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа."
           );
+          return;
         }
+
+        reportId = getReportId(data);
       }
 
       if (selectedFile) {
+        if (reportId === undefined || reportId === null || reportId === "") {
+          alert("Үүсгэсэн тайлангийн дугаар олдсонгүй.");
+          return;
+        }
+
         const formData = new FormData();
         formData.append("file", selectedFile, selectedFile.name);
 
-        const response = await fetch("/api/reports/file", {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        });
+        const response = await fetch(
+          `/api/reports/file/${encodeURIComponent(reportId)}`,
+          {
+            method: editingReport ? "PUT" : "POST",
+            credentials: "include",
+            body: formData,
+          }
+        );
+
+        const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
           if (response.status === 401) {
             alert(
               "Тайлан үүссэн боловч файл оруулах эрхийг backend зөвшөөрсөнгүй."
             );
+            return;
           }
-          alert(data.message || "Тайлангийн файл илгээхэд алдаа гарлаа");
+          alert(
+            data.message || "Тайлангийн файл илгээхэд алдаа гарлаа"
+          );
+          return;
         }
+
+        uploadedFileName = getFileName(data) || selectedFile.name;
       }
 
       if (editingReport) {
@@ -172,7 +307,10 @@ export default function ReportPage() {
                 ...report,
                 title: values.title,
                 description: values.description,
-                file: values.file?.[0]?.name || report.file,
+                file: uploadedFileName || report.file,
+                fileName: uploadedFileName || report.fileName,
+                originalFileName:
+                  uploadedFileName || report.originalFileName,
               }
             : report
         );
@@ -181,7 +319,7 @@ export default function ReportPage() {
         message.success("Тайлан шинэчлэгдлээ");
       } else {
         const newReport = {
-          id: Date.now(),
+          id: reportId,
           title: values.title,
           description: values.description,
           file: selectedFile?.name || "",
@@ -295,6 +433,7 @@ export default function ReportPage() {
           open={!!deleteTarget}
           onOk={handleConfirmDelete}
           onCancel={() => setDeleteTarget(null)}
+          confirmLoading={isDeleting}
           okText="Устгах"
           okButtonProps={{ danger: true }}
           cancelText="Болих"
@@ -330,22 +469,21 @@ export default function ReportPage() {
               <Input.TextArea rows={5} />
             </Form.Item>
             <Form.Item
-              label="DOCX файл"
+              label="Файл"
               name="file"
               valuePropName="fileList"
               getValueFromEvent={(event) => event?.fileList || []}
               rules={
                 editingReport
                   ? []
-                  : [{ required: true, message: "DOCX файл сонгоно уу" }]
+                  : [{ required: true, message: "Файл сонгоно уу" }]
               }
             >
               <Upload
                 beforeUpload={() => false}
-                accept=".docx"
                 maxCount={1}
               >
-                <Button icon={<UploadOutlined />}>DOCX сонгох</Button>
+                <Button icon={<UploadOutlined />}>Файл сонгох</Button>
               </Upload>
             </Form.Item>
 
@@ -353,8 +491,7 @@ export default function ReportPage() {
               type="primary"
               htmlType="submit"
               loading={isSubmitting}
-              block
-            >
+              block>
               {editingReport ? "Хадгалах" : "Тайлан илгээх"}
             </Button>
           </Form>

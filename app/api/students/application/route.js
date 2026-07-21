@@ -18,38 +18,9 @@ function normalizeToken(value) {
     .trim();
 }
 
-export async function GET() {
-  try {
-    const response = await fetch(`${API_BASE}/api/postings`, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    const responseBody = await response.text();
-
-    return new Response(responseBody, {
-      status: response.status,
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "application/json",
-      },
-    });
-  } catch (error) {
-    console.error("Loading postings failed:", error);
-    return Response.json(
-      { message: "Заруудыг серверээс авч чадсангүй." },
-      { status: 502 }
-    );
-  }
-}
-
-async function createPosting(token, body) {
-  return fetch(`${API_BASE}/api/postings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body,
+function getApplications(token) {
+  return fetch(`${API_BASE}/api/students/application`, {
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
 }
@@ -62,11 +33,10 @@ async function refreshAccessToken(token) {
     cache: "no-store",
   });
   const data = await response.json().catch(() => ({}));
-
   return response.ok ? normalizeToken(data.token) : null;
 }
 
-export async function POST(request) {
+export async function GET() {
   const cookieStore = await cookies();
   let token = normalizeToken(cookieStore.get("token")?.value);
 
@@ -75,8 +45,7 @@ export async function POST(request) {
   }
 
   try {
-    const body = await request.text();
-    let response = await createPosting(token, body);
+    let response = await getApplications(token);
 
     if (response.status === 401) {
       const refreshedToken = await refreshAccessToken(token);
@@ -91,21 +60,20 @@ export async function POST(request) {
 
       token = refreshedToken;
       cookieStore.set("token", token, cookieOptions);
-      response = await createPosting(token, body);
+      response = await getApplications(token);
     }
 
     const responseBody = await response.text();
-
     return new Response(responseBody, {
       status: response.status,
       headers: {
-        "Content-Type": response.headers.get("content-type") || "text/plain",
+        "Content-Type": response.headers.get("content-type") || "application/json",
       },
     });
   } catch (error) {
-    console.error("Posting creation failed:", error);
+    console.error("Student applications fetch failed:", error);
     return Response.json(
-      { message: "Зарыг серверт илгээж чадсангүй." },
+      { message: "Хүсэлтийн жагсаалтыг серверээс авч чадсангүй." },
       { status: 502 }
     );
   }

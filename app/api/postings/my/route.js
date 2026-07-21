@@ -22,7 +22,7 @@ async function getMyPostings(token) {
 
 export async function GET() {
   const cookieStore = await cookies();
-  const token = normalizeToken(cookieStore.get("auth_token")?.value);
+  const token = normalizeToken(cookieStore.get("token")?.value);
 
   if (!token) {
     return Response.json({ message: "Нэвтрэх шаардлагатай." }, { status: 401 });

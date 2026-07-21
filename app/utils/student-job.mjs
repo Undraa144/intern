@@ -29,6 +29,7 @@ const formatDeadline = (deadline) =>
 export function toStudentJob(posting) {
   return {
     id: posting.internshipPostId,
+    organizationId: posting.organizationId,
     company: posting.organizationName || "Мэдээлэл байхгүй",
     industry: posting.industry || null,
     title: posting.title || "Мэдээлэл байхгүй",
