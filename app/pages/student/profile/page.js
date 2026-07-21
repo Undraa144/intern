@@ -29,11 +29,13 @@ import {
 import styles from "./page.module.scss";
 import MainLayout from "@/app/MainLayout";
 import { parseResponseBody } from "@/app/utils/response-body.mjs";
+import { getStudentIdFromResponse } from "@/app/utils/application-payload.mjs";
 import {
   updateStudentProfile,
   uploadStudentResume,
 } from "@/app/utils/student-profile-api.mjs";
 import { buildStudentProfilePayload } from "@/app/utils/student-profile-payload.mjs";
+
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -41,12 +43,46 @@ function formatListForInput(value) {
   return Array.isArray(value) ? value.join(", ") : value ?? "";
 }
 
+function getReviewList(payload) {
+  const value = payload?.data ?? payload?.reviews ?? payload?.content ?? payload;
+  const list = Array.isArray(value)
+    ? value
+    : value?.content ?? value?.reviews ?? [];
+
+  return Array.isArray(list) ? list : [];
+}
+
+function normalizeReview(review) {
+  return {
+    name:
+      review.name ??
+      review.organizationName ??
+      review.companyName ??
+      "Нэргүй",
+    rate: Number(review.rate ?? review.score ?? review.rating ?? 0),
+    comment: review.Comment ?? review.comment ?? "",
+    createdAt: review.createdAt ?? review.date ?? "",
+  };
+}
+
+function getAverageRate(payload) {
+  const value =
+    payload?.data ??
+    payload?.averageRate ??
+    payload?.avgRate ??
+    payload?.average ??
+    payload;
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [resumeFile, setResumeFile] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [averageRate,setAverageRate] = useState();
+  const [averageRate, setAverageRate] = useState(0);
   const [profile, setProfile] = useState({
     fullName: "",
     major: "",
@@ -106,52 +142,81 @@ export default function ProfilePage() {
         alert("Хэрэглэгчийн мэдээллийг авч чадсангүй. Дахин оролдоно уу.");
       }
     };
-    // const loadReview = async () =>{
-    //   try {
-    //     function getCookie(name) {
-    //       return document.cookie
-    //           .split("; ")
-    //           .find(row => row.startsWith(name + "="))
-    //           ?.split("=")[1];
-    //     }
-    //
-    //     const token = getCookie("token");
-    //     const response = await fetch(`${BASE_API}/api/evaluations/student`, {
-    //       headers: token ? { Authorization: `Bearer ${token}` } : {},
-    //     });
-    //     const data = await parseResponseBody(response);
-    //     if (!response.ok || !data) {
-    //       alert("review хүсэлт алдааа гарлаа");
-    //     }
-    //     //setReviews(data);
-    //   }
-    //   catch (e){
-    //     alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
-    //   }
-    // }
-    // const loadAvgRate = async () =>{
-    //   try {
-    //     function getCookie(name) {
-    //       return document.cookie
-    //           .split("; ")
-    //           .find(row => row.startsWith(name + "="))
-    //           ?.split("=")[1];
-    //     }
-    //
-    //     const token = getCookie("token");
-    //     const response = fetch(`${BASE_API}/api/students/avg`, {
-    //       headers: token ? { Authorization: `Bearer ${token}` } : {},
-    //     })
-    //     const data = await parseResponseBody(response);
-    //     console.log(data.toString());
-    //
-    //   }
-    //   catch (e){
-    //     alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
-    //   }
-    // }
-    // loadAvgRate();
-    // loadReview();
+    const loadStudentId = async () => {
+      const response = await fetch("/api/auth/myId", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await parseResponseBody(response);
+
+      if (!response.ok) {
+        throw new Error(data?.message || "Оюутны ID авч чадсангүй.");
+      }
+
+      const studentId = getStudentIdFromResponse(data);
+
+      if (!studentId) {
+        throw new Error("Оюутны ID буруу байна.");
+      }
+
+      return studentId;
+    };
+
+    const loadReview = async (studentId) =>{
+      try {
+        const response = await fetch(`/api/studentReview/${studentId}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const data = await parseResponseBody(response);
+
+        if (!response.ok || !data) {
+          alert(data?.message || "review хүсэлт дээр алдаа гарлаа");
+          return;
+        }
+
+        setReviews(getReviewList(data).map(normalizeReview));
+      }
+      catch (e){
+        alert("хэрэглэгчийн сэтгэгдэлийг авах холболт дээр алдаа гарлаа "+e);
+      }
+    };
+
+    const loadAvgRate = async (studentId) =>{
+      try {
+        const response = await fetch(`/api/studentReview/avg/${studentId}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+        const data = await parseResponseBody(response);
+
+        if (!response.ok || data === null) {
+          alert(data?.message || "үнэлгээний голч авах хүсэлт дээр алдаа гарлаа");
+          return;
+        }
+
+        setAverageRate(getAverageRate(data));
+
+      }
+      catch (e){
+        alert("үнэлгэгэний голч дээр алдаа гарлаа "+e);
+      }
+    };
+
+    const loadReviewData = async () => {
+      try {
+        const studentId = await loadStudentId();
+
+        await Promise.all([
+          loadReview(studentId),
+          loadAvgRate(studentId),
+        ]);
+      } catch (error) {
+        alert(error.message || "Сэтгэгдлийн мэдээллийг авч чадсангүй.");
+      }
+    };
+
+    loadReviewData();
     loadProfile();
   }, []);
 
@@ -472,7 +537,7 @@ export default function ProfilePage() {
             Үнэлгээ, сэтгэгдэл{" "}
             {reviews.length > 0 && (
                 <Tag color="gold" style={{ marginLeft: 10 }}>
-                Дундаж: {averageRate} <StarFilled style={{ color: "#fadb14" }} />
+                Дундаж: {averageRate.toFixed(1)} <StarFilled style={{ color: "#fadb14" }} />
                 </Tag>
             )}
             </span>
@@ -485,14 +550,14 @@ export default function ProfilePage() {
             reviews.map((item, index) => (
             <Card key={index} size="small" style={{ marginBottom: 15 }}>
                 <Tag>
-                  {item.organizationName}
+                  {item.name}
                 </Tag>
                 <div style={{ margin: "10px 0" }}>
-                <Rate disabled value={item.score} />
+                <Rate disabled value={item.rate} />
                 </div>
-                {/*<Text>{item.comment}</Text>*/}
+                <Text>{item.comment}</Text>
                 <br />
-                {/*<Text type="secondary">{item.date}</Text>*/}
+                <Text type="secondary">{item.createdAt}</Text>
             </Card>
             ))
         )}
