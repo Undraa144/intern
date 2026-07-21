@@ -39,6 +39,52 @@ export async function GET(_request, { params }) {
   }
 }
 
+export async function PUT(request, { params }) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const token = normalizeToken(cookieStore.get("token")?.value);
+
+  if (!token) {
+    return Response.json(
+      { message: "Нэвтрэх шаардлагатай." },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const body = await request.text();
+    const response = await fetch(
+      `${API_BASE}/api/postings/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body,
+        cache: "no-store",
+      }
+    );
+    const responseBody = await response.text();
+
+    return new Response(responseBody || null, {
+      status: response.status,
+      headers: responseBody
+        ? {
+            "Content-Type":
+              response.headers.get("content-type") || "text/plain",
+          }
+        : undefined,
+    });
+  } catch (error) {
+    console.error("Posting update failed:", error);
+    return Response.json(
+      { message: "Зарыг шинэчилж чадсангүй." },
+      { status: 502 }
+    );
+  }
+}
+
 export async function DELETE(request, { params }) {
   const { id } = await params;
   const cookieStore = await cookies();

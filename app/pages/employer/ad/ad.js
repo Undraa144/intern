@@ -9,6 +9,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Checkbox,
   Space,
   message,
   Typography,
@@ -59,24 +60,49 @@ export default function Ad({ searchText = "" }) {
       ? data
       : data.content ?? data.postings ?? data.data ?? [];
     const postings = Array.isArray(payload) ? payload : [];
+    const publicResponse = await fetch("/api/postings", {
+      cache: "no-store",
+    });
+    const publicData = publicResponse.ok
+      ? await publicResponse.json().catch(() => [])
+      : [];
+    const publicPayload = Array.isArray(publicData)
+      ? publicData
+      : publicData.content ?? publicData.postings ?? publicData.data ?? [];
+    const publicPostings = Array.isArray(publicPayload) ? publicPayload : [];
 
     setJobs(
-      postings.map((posting) => ({
-        ...posting,
-        id: posting.id ?? posting.postingId,
-        company: posting.company ?? posting.companyName ?? "",
-        majors: posting.requiredMajors ?? posting.majors ?? [],
-        skills: posting.requiredSkills ?? posting.skills ?? [],
-        gpa: posting.minGpa ?? posting.gpa,
-        positions: posting.vacancyCount ?? posting.positions,
-        vacancies: posting.vacancyCount ?? posting.vacancies,
-        views: posting.views ?? posting.viewCount ?? 0,
-        salary:
-          posting.salary ??
-          (posting.isSalaryUnspecified
-            ? "Тохиролцоно"
-            : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`),
-      }))
+      postings.map((posting) => {
+        const postingId =
+          posting.internshipPostId ?? posting.postingId ?? posting.id;
+        const publicPosting = publicPostings.find(
+          (item) =>
+            String(item.id ?? item.postingId ?? item.internshipPostId) ===
+            String(postingId)
+        );
+        const city =
+          publicPosting?.city ?? posting.city ?? posting.location ?? "";
+
+        return {
+          ...posting,
+          id: postingId,
+          internshipPostId: postingId,
+          company: posting.company ?? posting.companyName ?? "",
+          city,
+          location: city,
+          majors: posting.requiredMajors ?? posting.majors ?? [],
+          skills: posting.requiredSkills ?? posting.skills ?? [],
+          gpa: posting.minGpa ?? posting.gpa,
+          positions: posting.vacancyCount ?? posting.positions,
+          vacancies: posting.vacancyCount ?? posting.vacancies,
+          views: posting.views ?? posting.viewCount ?? 0,
+          salary:
+            posting.salary ??
+            (posting.isSalaryUnspecified
+              ? "Тохиролцоно"
+              : `${posting.salaryMin ?? 0} - ${posting.salaryMax ?? 0} ₮`),
+        };
+      })
     );
   }, []);
 
@@ -283,7 +309,17 @@ export default function Ad({ searchText = "" }) {
 
   const handleEdit = (job) => {
     setEditingJob(job);
-    form.setFieldsValue(job);
+    form.setFieldsValue({
+      ...job,
+      majors: toList(job.majors).join(", "),
+      skills: toList(job.skills).join(", "),
+      city: job.city ?? job.location ?? "",
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      isSalaryUnspecified: Boolean(job.isSalaryUnspecified),
+      positions: job.vacancyCount ?? job.positions,
+      gpa: job.minGpa ?? job.gpa,
+    });
     setFormOpen(true);
   };
 
@@ -326,12 +362,49 @@ export default function Ad({ searchText = "" }) {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      let updatedJobs = [...jobs];
 
       if (editingJob) {
-        updatedJobs = updatedJobs.map((job) =>
-          job.id === editingJob.id ? { ...job, ...values } : job
+        const internshipPostId =
+          editingJob.internshipPostId ?? editingJob.id;
+
+        if (!internshipPostId) {
+          throw new Error("Засах зарын internshipPostId олдсонгүй.");
+        }
+
+        setIsSaving(true);
+        const response = await fetch(
+          `/api/postings/${encodeURIComponent(internshipPostId)}`,
+          {
+            method: "PUT",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              description: values.description,
+              requiredMajors: toList(values.majors),
+              minGpa: Number(values.gpa),
+              requiredSkills: toList(values.skills),
+              salaryMin: Number(values.salaryMin),
+              salaryMax: Number(values.salaryMax),
+              vacancyCount: Number(values.positions),
+              deadline: values.deadline?.includes("T")
+                ? values.deadline
+                : `${values.deadline.replaceAll(".", "-")}T23:59:59`,
+            }),
+          }
         );
+
+        if (!response.ok) {
+          const responseText = await response.text();
+          let errorMessage = responseText;
+
+          try {
+            const data = JSON.parse(responseText);
+            errorMessage = data.message || data.error || responseText;
+          } catch {
+          }
+
+          throw new Error(errorMessage || "Зар засахад алдаа гарлаа.");
+        }
 
         message.success("Зар шинэчлэгдлээ");
       } else {
@@ -343,15 +416,18 @@ export default function Ad({ searchText = "" }) {
           body: JSON.stringify({
             title: values.title,
             description: values.description,
+            city: values.city?.trim(),
             requiredMajors: toList(values.majors),
             minGpa: Number(values.gpa),
             requiredSkills: toList(values.skills),
-            salaryMin: Number(values.salary),
-            salaryMax: Number(values.salary),
+            salaryMin: Number(values.salaryMin),
+            salaryMax: Number(values.salaryMax),
+            isSalaryUnspecified: Boolean(values.isSalaryUnspecified),
+            duration: values.duration?.trim(),
             vacancyCount: Number(values.positions),
             deadline: values.deadline?.includes("T")
               ? values.deadline
-              : `${values.deadline}T23:59:59`,
+              : `${values.deadline.replaceAll(".", "-")}T23:59:59`,
           }),
         });
 
@@ -364,7 +440,7 @@ export default function Ad({ searchText = "" }) {
       }
 
       if (editingJob) {
-        saveJobs(updatedJobs);
+        await loadMyPostings();
       } else {
         await loadMyPostings();
       }
@@ -483,7 +559,9 @@ export default function Ad({ searchText = "" }) {
                     <EnvironmentOutlined /> Байршил
                   </Text>
                   <br />
-                  <Text strong>{selectedJob.location}</Text>
+                  <Text strong>
+                    {selectedJob.city ?? selectedJob.location ?? "Мэдээлэл байхгүй"}
+                  </Text>
                 </Col>
 
                 <Col span={8}>
@@ -607,41 +685,99 @@ export default function Ad({ searchText = "" }) {
             <Input.TextArea rows={4} />
           </Form.Item>
 
-          <Form.Item label="Байршил" name="location">
+          <Form.Item label="Байршил" name="city">
             <Input />
           </Form.Item>
 
-          <Form.Item label="Цаг" name="duration">
+          <Form.Item
+            label="Цаг"
+            name="duration"
+            rules={[{ required: true, message: "Үргэлжлэх хугацааг оруулна уу" }]}
+          >
             <Input />
           </Form.Item>          
 
-          <Form.Item label="Цалин" name="salary">
-            <InputNumber min={1} />
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Цалингийн доод хэмжээ"
+                name="salaryMin"
+                rules={[{ required: true, message: "Доод хэмжээг оруулна уу" }]}
+              >
+                <InputNumber min={0} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Цалингийн дээд хэмжээ"
+                name="salaryMax"
+                dependencies={["salaryMin"]}
+                rules={[
+                  { required: true, message: "Дээд хэмжээг оруулна уу" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (value >= getFieldValue("salaryMin")) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("Дээд хэмжээ доод хэмжээнээс бага байж болохгүй")
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <InputNumber min={0} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="isSalaryUnspecified"
+            valuePropName="checked"
+            initialValue={false}
+          >
+            <Checkbox>Цалинг тохиролцоно</Checkbox>
           </Form.Item>
 
-          <Form.Item label="GPA" name="gpa">
+          <Form.Item
+            label="GPA"
+            name="gpa"
+            rules={[{ required: true, message: "Доод GPA-г оруулна уу" }]}
+          >
+            <InputNumber min={0} max={4} step={0.01} style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            label="Мэргэжил"
+            name="majors"
+            rules={[{ required: true, message: "Мэргэжлүүдийг оруулна уу" }]}
+          >
             <Input />
           </Form.Item>
 
-          <Form.Item label="Мэрэгжил" name="majors">
+          <Form.Item
+            label="Чадварууд"
+            name="skills"
+            rules={[{ required: true, message: "Чадваруудыг оруулна уу" }]}
+          >
             <Input />
           </Form.Item>
 
-          <Form.Item label="Чадварууд" name="skills">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Хэл" name="languages">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Орон тоо" name="positions">
+          <Form.Item
+            label="Орон тоо"
+            name="positions"
+            rules={[{ required: true, message: "Орон тоог оруулна уу" }]}
+          >
             <InputNumber min={1} style={{ width: "100%" }} />
           </Form.Item>
 
           
-          <Form.Item label="Дуусах хугацаа" name="deadline">
-            <Input placeholder="2026.07.20" />
+          <Form.Item
+            label="Дуусах хугацаа"
+            name="deadline"
+            rules={[{ required: true, message: "Дуусах хугацааг оруулна уу" }]}
+          >
+            <Input type="date" />
           </Form.Item>
         </Form>
       </Modal>
