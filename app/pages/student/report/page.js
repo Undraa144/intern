@@ -27,6 +27,7 @@ import {
   Space,
 } from "antd";
 import MainLayout from "@/app/MainLayout";
+import { decodeBase64File } from "@/app/utils/base64-file.mjs";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -59,6 +60,30 @@ function getFileName(payload) {
     file?.originalFilename ??
     file?.name
   );
+}
+
+function downloadReportFile(report) {
+  if (!report.data || !report.file) {
+    message.error("Тайлангийн файлын өгөгдөл олдсонгүй.");
+    return;
+  }
+
+  try {
+    const blob = new Blob([decodeBase64File(report.data)], {
+      type: report.fileType || "application/octet-stream",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = report.file;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch {
+    message.error("Тайлангийн файлын өгөгдөл буруу форматтай байна.");
+  }
 }
 
 export default function ReportPage() {
@@ -411,9 +436,18 @@ export default function ReportPage() {
             <p>{report.description}</p>
 
             <div>
-              <a href="#">
-                <FileWordOutlined /> {report.file}
-              </a>
+              {report.file ? (
+                <Button
+                  type="link"
+                  icon={<FileWordOutlined />}
+                  onClick={() => downloadReportFile(report)}
+                  style={{ padding: 0 }}
+                >
+                  {report.file}
+                </Button>
+              ) : (
+                <Text type="secondary">Файл байхгүй</Text>
+              )}
             </div>
 
             {report.comment && (

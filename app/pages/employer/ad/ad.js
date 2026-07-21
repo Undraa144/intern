@@ -312,7 +312,6 @@ export default function Ad({ searchText = "" }) {
           const data = JSON.parse(responseText);
           errorMessage = data.message || data.error || responseText;
         } catch {
-          // The backend may return plain text.
         }
         throw new Error(errorMessage || "Зар устгахад алдаа гарлаа.");
       }
@@ -564,23 +563,6 @@ export default function Ad({ searchText = "" }) {
             >
               {toList(selectedJob.skills).map((item) => (
                 <Tag color="blue" key={item}>
-                  {item}
-                </Tag>
-              ))}
-            </div>
-
-            <Title level={5}>Хэл</Title>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                flexWrap: "wrap",
-                marginBottom: 20,
-              }}
-            >
-              {toList(selectedJob.languages).map((item) => (
-                <Tag color="green" key={item}>
                   {item}
                 </Tag>
               ))}

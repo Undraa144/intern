@@ -43,6 +43,16 @@ function formatListForInput(value) {
   return Array.isArray(value) ? value.join(", ") : value ?? "";
 }
 
+function ResumeDownloadLink({ resume }) {
+  if (!resume) return "Resume байхгүй";
+
+  return (
+    <a href="/api/students/profile/cv" download>
+      {resume}
+    </a>
+  );
+}
+
 function getReviewList(payload) {
   const value = payload?.data ?? payload?.reviews ?? payload?.content ?? payload;
   const list = Array.isArray(value)
@@ -117,6 +127,16 @@ export default function ProfilePage() {
         const teacher = student.teacher ?? {};
         const firstName = student.firstName ?? user.firstName ?? "";
         const lastName = student.lastName ?? user.lastName ?? "";
+        const resumeResponse = await fetch(
+          "/api/students/profile/cv?metadata=true",
+          {
+            credentials: "include",
+            cache: "no-store",
+          }
+        );
+        const resumeMetadata = resumeResponse.ok
+          ? await parseResponseBody(resumeResponse)
+          : null;
 
         setProfile({
           fullName:
@@ -130,7 +150,11 @@ export default function ProfilePage() {
           email: student.email ?? user.email ?? "",
           gpa: student.gpa ?? "",
           bio: student.shortBio ?? student.bio ?? "",
-          resume: student.resume ?? student.resumeUrl ?? "",
+          resume:
+            resumeMetadata?.fileName ??
+            student.resume ??
+            student.resumeUrl ??
+            "",
           skills: formatListForInput(student.skills),
           languages: formatListForInput(student.language),
           teacherName:
@@ -288,7 +312,7 @@ export default function ProfilePage() {
               </p>
 
               <p>
-                <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+                <FileTextOutlined /> <ResumeDownloadLink resume={profile.resume} />
               </p>
             </div>
 
@@ -439,11 +463,10 @@ export default function ProfilePage() {
             </div>
 
             <div className={styles.bio}>
-              <label>Resume (PDF)</label>
+              <label>Resume</label>
 
               {isEditing ? (
                 <Upload
-                  accept="application/pdf,.pdf"
                   beforeUpload={(file) => {
                     setResumeFile(file);
                     return false;
@@ -458,7 +481,7 @@ export default function ProfilePage() {
                 </Upload>
               ) : (
                 <p>
-                  <FileTextOutlined /> {profile.resume || "Resume байхгүй"}
+                  <FileTextOutlined /> <ResumeDownloadLink resume={profile.resume} />
                 </p>
               )}
             </div>

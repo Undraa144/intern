@@ -25,6 +25,7 @@ export default function Login() {
           password: values.password,
         }),
       });
+
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -42,7 +43,8 @@ export default function Login() {
         alert(data1.message || "Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
         return;
       }
-
+      console.log(data1);
+      console.log(userData);
       if (data1.role === "STUDENT") {
         router.push("/pages/student/home");
       } else if (data1.role === "TEACHER") {
@@ -60,8 +62,8 @@ export default function Login() {
 
   const items = [
     {
-      key: '1',
-      label: 'Student',
+      key: "1",
+      label: "Student",
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
@@ -74,10 +76,7 @@ export default function Login() {
             </div>
           </div>
 
-          <Form
-            layout="vertical"
-            onFinish={(values) => onFinish(values)}
-          >
+          <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="email"
               rules={[
@@ -106,13 +105,8 @@ export default function Login() {
               <Input.Password placeholder="Password" />
             </Form.Item>
 
-            <Form.Item
-              name="agreement"
-              valuePropName="checked"
-            >
-              <Checkbox>
-                Remember me
-              </Checkbox>
+            <Form.Item name="agreement" valuePropName="checked">
+              <Checkbox>Remember me</Checkbox>
             </Form.Item>
 
             <Button
@@ -128,8 +122,8 @@ export default function Login() {
       ),
     },
     {
-      key: '2',
-      label: 'Employer',
+      key: "2",
+      label: "Employer",
       children: (
         <div className={styles.form}>
           <div className={styles.topRow}>
@@ -140,14 +134,9 @@ export default function Login() {
                 <Link href="/pages/signup?role=employer">Sign Up</Link>
               </p>
             </div>
-
           </div>
 
-          <Form
-            layout="vertical"
-            onFinish={(values) => onFinish(values, "employer")}
-          >
-
+          <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="email"
               rules={[
@@ -176,13 +165,8 @@ export default function Login() {
               <Input.Password placeholder="Password" />
             </Form.Item>
 
-            <Form.Item
-              name="agreement"
-              valuePropName="checked"
-            >
-              <Checkbox>
-                Remember me
-              </Checkbox>
+            <Form.Item name="agreement" valuePropName="checked">
+              <Checkbox>Remember me</Checkbox>
             </Form.Item>
 
             <Button
@@ -194,30 +178,25 @@ export default function Login() {
               Log In
             </Button>
           </Form>
-      </div>
+        </div>
       ),
-  },
-  {
-    key: '3',
-    label: 'Teacher',
-    children: (
-      <div className={styles.form}>
+    },
+    {
+      key: "3",
+      label: "Teacher",
+      children: (
+        <div className={styles.form}>
           <div className={styles.topRow}>
             <div>
               <h2>Log In.</h2>
               <p>
-                Dont have  any account?{" "}
+                Dont have any account?{" "}
                 <Link href="/pages/signup?role=teacher">Sign Up</Link>
               </p>
             </div>
-
           </div>
 
-          <Form
-            layout="vertical"
-            onFinish={(values) => onFinish(values, "teacher")}
-          >
-
+          <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="email"
               rules={[
@@ -246,13 +225,8 @@ export default function Login() {
               <Input.Password placeholder="Password" />
             </Form.Item>
 
-            <Form.Item
-              name="agreement"
-              valuePropName="checked"
-            >
-              <Checkbox>
-                Remember me
-              </Checkbox>
+            <Form.Item name="agreement" valuePropName="checked">
+              <Checkbox>Remember me</Checkbox>
             </Form.Item>
 
             <Button
@@ -274,14 +248,8 @@ export default function Login() {
       <div className={styles.left}></div>
 
       <div className={styles.right}>
-        <Tabs
-          defaultActiveKey={activeTabKey}
-          centered
-          items={items}
-        />
+        <Tabs defaultActiveKey={activeTabKey} centered items={items} />
       </div>
     </div>
   );
 }
-
-

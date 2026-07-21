@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { decodeBase64File } from "@/app/utils/base64-file.mjs";
 
 const API_BASE = process.env.API_BASE || "http://localhost:8088";
 
@@ -41,6 +42,16 @@ async function refreshAccessToken(token) {
   return response.ok ? data.token : null;
 }
 
+function getDownloadHeaders(fileName, fileType) {
+  const safeFileName = fileName.replace(/["\\\r\n]/g, "_");
+  const encodedFileName = encodeURIComponent(fileName);
+
+  return {
+    "Content-Type": fileType || "application/octet-stream",
+    "Content-Disposition": `attachment; filename="${safeFileName}"; filename*=UTF-8''${encodedFileName}`,
+  };
+}
+
 async function handleFileRequest(request, params, method) {
   const { reportId } = await params;
   const cookieStore = await cookies();
@@ -63,7 +74,7 @@ async function handleFileRequest(request, params, method) {
   try {
     let createFormData = () => undefined;
 
-    if (method !== "DELETE") {
+    if (method !== "GET" && method !== "DELETE") {
       const incomingFormData = await request.formData();
       const file = incomingFormData.get("file");
 
@@ -130,6 +141,31 @@ async function handleFileRequest(request, params, method) {
       );
     }
 
+    if (method === "GET" && response.ok) {
+      const payload = await response.json().catch(() => null);
+      const file = payload?.fileName
+        ? payload
+        : payload?.data ?? payload?.file ?? payload;
+
+      if (!file?.fileName || !file?.data) {
+        return Response.json(
+          { message: "Тайлангийн файлын нэр эсвэл өгөгдөл хоосон байна." },
+          { status: 404 }
+        );
+      }
+
+      try {
+        return new Response(decodeBase64File(file.data), {
+          headers: getDownloadHeaders(file.fileName, file.fileType),
+        });
+      } catch {
+        return Response.json(
+          { message: "Тайлангийн файлын өгөгдөл буруу форматтай байна." },
+          { status: 502 }
+        );
+      }
+    }
+
     const responseBody = await response.text();
 
     return new Response(responseBody, {
@@ -146,6 +182,10 @@ async function handleFileRequest(request, params, method) {
       { status: 502 }
     );
   }
+}
+
+export async function GET(request, { params }) {
+  return handleFileRequest(request, params, "GET");
 }
 
 export async function POST(request, { params }) {
