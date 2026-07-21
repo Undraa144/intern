@@ -24,6 +24,8 @@ import styles from "./home3.module.scss";
 
 const { Title, Text } = Typography;
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+
 const cardColors = [
   "#ece9ff",
   "#e9faf6",
@@ -65,8 +67,8 @@ export default function Home3({ searchText = "" }) {
     const loadPostings = async () => {
       try {
         const endpoint = searchText
-          ? `/api/postings/search/${encodeURIComponent(searchText)}`
-          : "/api/postings";
+          ? `${API_BASE}/api/postings/search/${encodeURIComponent(searchText)}`
+          : `${API_BASE}/api/postings`;
         const response = await fetch(endpoint, { cache: "no-store" });
         const data = await response.json().catch(() => ({}));
 
@@ -81,7 +83,7 @@ export default function Home3({ searchText = "" }) {
         let allPostings = [];
 
         if (searchText) {
-          const allResponse = await fetch("/api/postings", {
+          const allResponse = await fetch(`${API_BASE}/api/postings`, {
             cache: "no-store",
           });
           const allData = await allResponse.json().catch(() => ({}));
@@ -160,7 +162,7 @@ export default function Home3({ searchText = "" }) {
     setIsLoadingDetail(true);
 
     try {
-      const response = await fetch(`/api/postings/${job.id}`, {
+      const response = await fetch(`${API_BASE}/api/postings/${job.id}`, {
         cache: "no-store",
       });
       const data = await response.json().catch(() => ({}));
