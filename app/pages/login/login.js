@@ -11,49 +11,37 @@ export default function Login() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTabKey = getAuthRoleTabKey(searchParams.get("role"));
-    const API_BASE =
-        process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
+
   const onFinish = async (values) => {
     try {
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           email: values.email,
           password: values.password,
         }),
       });
-      const result = await response.json();
-
-      console.log(response.ok);
-      document.cookie = "token="+result.token+"; path=/";
-      const token = result.token;
-      console.log("token", token);
-      const userData = await fetch(`${API_BASE}/api/users/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data1 = await userData.json();
-        console.log(data1)
-
-
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        alert(data.message || "Login failed");
+        alert(result.message || "Login failed");
         return;
       }
 
+      const userData = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "same-origin",
+      });
+      const data1 = await userData.json().catch(() => ({}));
+
       if (!userData.ok) {
-        alert("Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
+        alert(data1.message || "Хэрэглэгчийн мэдээллийг уншиж чадсангүй.");
         return;
       }
-      console.log(data1);
 
       if (data1.role === "STUDENT") {
         router.push("/pages/student/home");

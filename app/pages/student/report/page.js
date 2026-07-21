@@ -83,7 +83,7 @@ export default function ReportPage() {
         const result = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-          throw new Error(result.message || "Тайлангийн жагсаалтыг авч чадсангүй.");
+          alert(result.message || "Тайлангийн жагсаалтыг авч чадсангүй.");
         }
 
         const data = Array.isArray(result)
@@ -181,7 +181,7 @@ export default function ReportPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Тайланг устгахад алдаа гарлаа.");
+        alert(data.message || "Тайланг устгахад алдаа гарлаа.");
       }
      
 
@@ -204,33 +204,15 @@ export default function ReportPage() {
     let reportId = editingReport?.id;
     let uploadedFileName = selectedFile?.name;
 
+    console.log(values.title)
+    console.log(values.description)
     setIsSubmitting(true);
 
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8088";
-      function getCookie(name) {
-        return document.cookie
-            .split("; ")
-            .find(row => row.startsWith(name + "="))
-            ?.split("=")[1];
-      }
-
-      const token = getCookie("token");
-      const authResponse = await fetch(`${API_BASE}/api/users/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!authResponse.ok) {
-        throw new Error("Нэвтрэх хугацаа дууссан байна. Дахин нэвтэрнэ үү.");
-      }
-
       if (editingReport) {
         if (reportId === undefined || reportId === null || reportId === "") {
-          throw new Error("Засах тайлангийн дугаар олдсонгүй.");
+          alert("Засах тайлангийн дугаар олдсонгүй.");
+          return;
         }
 
         const reportResponse = await fetch(
@@ -250,11 +232,13 @@ export default function ReportPage() {
         const data = await reportResponse.json().catch(() => ({}));
 
         if (!reportResponse.ok) {
-          throw new Error(data.message || "Тайланг засахад алдаа гарлаа.");
+          alert(data.message || "Тайланг засахад алдаа гарлаа.");
+          return;
         }
       } else {
-        const reportResponse = await fetch(`${API_BASE}/api/reports`, {
+        const reportResponse = await fetch("/api/reports", {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -268,11 +252,13 @@ export default function ReportPage() {
 
         if (!reportResponse.ok) {
           if (reportResponse.status === 401) {
-            throw new Error(data.message || "Дахин нэвтэрнэ үү");
+            alert(data.message || "Дахин нэвтэрнэ үү");
+            return;
           }
-          throw new Error(
-            data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа"
+          alert(
+            data.message || "Тайлангийн мэдээлэл илгээхэд алдаа гарлаа."
           );
+          return;
         }
 
         reportId = getReportId(data);
@@ -280,7 +266,8 @@ export default function ReportPage() {
 
       if (selectedFile) {
         if (reportId === undefined || reportId === null || reportId === "") {
-          throw new Error("Үүсгэсэн тайлангийн дугаар олдсонгүй.");
+          alert("Үүсгэсэн тайлангийн дугаар олдсонгүй.");
+          return;
         }
 
         const formData = new FormData();
@@ -299,13 +286,15 @@ export default function ReportPage() {
 
         if (!response.ok) {
           if (response.status === 401) {
-            throw new Error(
+            alert(
               "Тайлан үүссэн боловч файл оруулах эрхийг backend зөвшөөрсөнгүй."
             );
+            return;
           }
-          throw new Error(
+          alert(
             data.message || "Тайлангийн файл илгээхэд алдаа гарлаа"
           );
+          return;
         }
 
         uploadedFileName = getFileName(data) || selectedFile.name;
@@ -502,8 +491,7 @@ export default function ReportPage() {
               type="primary"
               htmlType="submit"
               loading={isSubmitting}
-              block
-            >
+              block>
               {editingReport ? "Хадгалах" : "Тайлан илгээх"}
             </Button>
           </Form>
